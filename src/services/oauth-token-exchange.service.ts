@@ -1,6 +1,5 @@
 import { clearCodeVerifier, getCodeVerifier, isProduction } from '@/components/shared';
 import { ErrorLogger } from '@/utils/error-logger';
-import brandConfig from '../../brand.config.json';
 
 interface TokenExchangeResponse {
     access_token?: string;
@@ -22,10 +21,6 @@ interface AuthInfo {
 }
 
 export class OAuthTokenExchangeService {
-    private static getOAuth2BaseURL(): string {
-        return brandConfig.platform.auth2_url[isProduction() ? 'production' : 'staging'];
-    }
-
     static getAuthInfo(): AuthInfo | null {
         try {
             const raw = sessionStorage.getItem('auth_info');
@@ -56,35 +51,34 @@ export class OAuthTokenExchangeService {
 
     static async exchangeCodeForToken(code: string): Promise<TokenExchangeResponse> {
         const codeVerifier = getCodeVerifier();
-        const clientId = process.env.DERIV_OAUTH_CLIENT_ID;
-        const redirectUrl = process.env.DERIV_REDIRECT_URL;
 
-        if (!codeVerifier || !clientId || !redirectUrl) {
+        if (!codeVerifier || !code) {
             return {
                 error: 'invalid_request',
-                error_description: 'OAuth configuration or PKCE verifier is missing. Please restart login.',
+                error_description: 'OAuth authorization code or PKCE verifier is missing. Please restart login.',
             };
         }
 
         try {
-            const response = await fetch(`${this.getOAuth2BaseURL()}token`, {
+            // The authorization-code exchange is deliberately performed by the
+            // Vercel serverless endpoint. The browser never calls Deriv's token
+            // endpoint directly.
+            const response = await fetch('/api/oauth/token', {
                 method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
-                    grant_type: 'authorization_code',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({
                     code,
-                    client_id: clientId,
-                    redirect_uri: redirectUrl,
                     code_verifier: codeVerifier,
-                }).toString(),
+                    redirect_uri: window.location.origin,
+                }),
             });
 
             const data = (await response.json()) as TokenExchangeResponse;
             if (!response.ok || data.error || !data.access_token) {
                 return {
                     error: data.error || 'token_exchange_failed',
-                    error_description: data.error_description || `Deriv token exchange failed (${response.status})`,
+                    error_description: data.error_description || `OAuth token exchange failed (${response.status})`,
                 };
             }
 
@@ -106,14 +100,12 @@ export class OAuthTokenExchangeService {
                 return { error: 'no_accounts', error_description: 'No Deriv accounts were returned.' };
             }
 
-            // Keep the provider's account ordering but prefer a previously selected valid account.
             const selectedId = localStorage.getItem('active_loginid');
             const active = accounts.find(account => account.account_id === selectedId) || accounts[0];
             localStorage.setItem('active_loginid', active.account_id);
             localStorage.setItem('account_type', active.account_type);
             DerivWSAccountsService.storeAccounts(accounts);
 
-            // Force the runtime to reconnect only after account state has been populated.
             const { api_base } = await import('@/external/bot-skeleton');
             await api_base.init(true);
             return data;
