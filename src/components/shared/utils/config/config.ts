@@ -7,7 +7,10 @@ export const WS_SERVERS = {
     PRODUCTION: `${brandConfig.platform.derivws.url.production}options/ws/public`,
 } as const;
 
-export const isProduction = () => Object.values(PRODUCTION_DOMAINS).includes(window.location.hostname);
+export const isProduction = () => {
+    const hostname = window.location.hostname.toLowerCase();
+    return hostname === PRODUCTION_DOMAINS.COM || hostname === `www.${PRODUCTION_DOMAINS.COM}`;
+};
 export const isLocal = () => /localhost(:\d+)?$/i.test(window.location.hostname);
 
 const getDefaultServerURL = () => (isProduction() ? WS_SERVERS.PRODUCTION : WS_SERVERS.STAGING);
@@ -82,8 +85,9 @@ export const clearCSRFToken = () => {
 const normaliseScopes = (value: string | undefined) => (value || 'trade').split(/[\s,]+/).filter(Boolean).join(' ');
 
 /**
- * Starts Deriv OAuth with PKCE. The redirect URI is always the configured Vercel
- * value so the authorization and token requests cannot accidentally diverge.
+ * Starts Deriv OAuth with PKCE. The OAuth client ID is the App ID issued for
+ * the registered OAuth application. Legacy app_id is deliberately omitted:
+ * DERIV_APP_ID is used only as the Deriv-App-ID API header after authentication.
  */
 export const generateOAuthURL = async (prompt?: string) => {
     const environment = isProduction() ? 'production' : 'staging';
@@ -91,7 +95,6 @@ export const generateOAuthURL = async (prompt?: string) => {
     const clientId = process.env.DERIV_OAUTH_CLIENT_ID;
     const redirectUrl = process.env.DERIV_REDIRECT_URL;
     const scopes = normaliseScopes(process.env.DERIV_OAUTH_SCOPE);
-    const appId = process.env.DERIV_APP_ID;
 
     if (!base || !clientId || !redirectUrl) {
         console.error('Deriv OAuth is not configured');
@@ -115,6 +118,5 @@ export const generateOAuthURL = async (prompt?: string) => {
         code_challenge_method: 'S256',
     });
     if (prompt) params.set('prompt', prompt);
-    if (appId) params.set('app_id', appId);
     return `${base}auth?${params.toString()}`;
 };
