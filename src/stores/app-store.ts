@@ -13,7 +13,6 @@ export default class AppStore {
     disposeReloadOnLanguageChangeReaction: unknown;
     disposeCurrencyReaction: unknown;
     disposeSwitchAccountListener: unknown;
-
     disposeResidenceChangeReaction: unknown;
 
     constructor(root_store: RootStore, core: RootStore['core']) {
@@ -22,7 +21,6 @@ export default class AppStore {
             onUnmount: action,
             registerCurrencyReaction: action,
             registerOnAccountSwitch: action,
-
             registerResidenceChangeReaction: action,
             setDBotEngineStores: action,
             onClickOutsideBlockly: action,
@@ -38,7 +36,6 @@ export default class AppStore {
     onMount = async () => {
         const { blockly_store, run_panel } = this.root_store;
         const { ui } = this.core;
-
         let timer_counter = 1;
 
         this.timer = setInterval(() => {
@@ -53,22 +50,31 @@ export default class AppStore {
             }
         }, 10000);
 
-        if (!this.dbot_store) return;
+        // The public builder must be able to initialize before authentication.
+        // app-content sets these stores during application startup.
+        if (!this.dbot_store) {
+            this.setDBotEngineStores();
+        }
+        if (!this.dbot_store) {
+            console.error('[VintelFX] DBot stores are unavailable; builder cannot initialize.');
+            return;
+        }
 
         blockly_store.setLoading(true);
-        await DBot.initWorkspace('/', this.dbot_store, this.api_helpers_store, ui.is_mobile, false);
-
-        blockly_store.setContainerSize();
-        blockly_store.setLoading(false);
-
-        this.registerCurrencyReaction.call(this);
-        this.registerOnAccountSwitch.call(this);
-
-        this.registerResidenceChangeReaction.call(this);
-
-        window.addEventListener('click', this.onClickOutsideBlockly);
-
-        blockly_store.getCachedActiveTab();
+        try {
+            await DBot.initWorkspace('/', this.dbot_store, this.api_helpers_store, ui.is_mobile, false);
+            blockly_store.setContainerSize();
+            blockly_store.getCachedActiveTab();
+            this.registerCurrencyReaction.call(this);
+            this.registerOnAccountSwitch.call(this);
+            this.registerResidenceChangeReaction.call(this);
+            window.addEventListener('click', this.onClickOutsideBlockly);
+        } catch (error) {
+            console.error('[VintelFX] Failed to initialize DBot workspace:', error);
+        } finally {
+            // Never leave the builder permanently hidden because initialization failed.
+            blockly_store.setLoading(false);
+        }
     };
 
     onUnmount = () => {
@@ -78,50 +84,29 @@ export default class AppStore {
             clearInterval(window.Blockly?.derivWorkspace.save_workspace_interval);
             window.Blockly.derivWorkspace?.dispose();
         }
-        if (typeof this.disposeReloadOnLanguageChangeReaction === 'function') {
-            this.disposeReloadOnLanguageChangeReaction();
-        }
-        if (typeof this.disposeCurrencyReaction === 'function') {
-            this.disposeCurrencyReaction();
-        }
-        if (typeof this.disposeSwitchAccountListener === 'function') {
-            this.disposeSwitchAccountListener();
-        }
-
-        if (typeof this.disposeResidenceChangeReaction === 'function') {
-            this.disposeResidenceChangeReaction();
-        }
-
+        if (typeof this.disposeReloadOnLanguageChangeReaction === 'function') this.disposeReloadOnLanguageChangeReaction();
+        if (typeof this.disposeCurrencyReaction === 'function') this.disposeCurrencyReaction();
+        if (typeof this.disposeSwitchAccountListener === 'function') this.disposeSwitchAccountListener();
+        if (typeof this.disposeResidenceChangeReaction === 'function') this.disposeResidenceChangeReaction();
         window.removeEventListener('click', this.onClickOutsideBlockly);
-
-        // Ensure account switch is re-enabled.
-        // TODO: fix
         const { ui } = this.core;
-
         ui.setAccountSwitcherDisabledMessage();
         ui.setPromptHandler(false);
-
         if (this.timer) clearInterval(this.timer);
         performance.clearMeasures();
     };
 
     registerCurrencyReaction = () => {
-        // Syncs all trade options blocks' currency with the client's active currency.
         this.disposeCurrencyReaction = reaction(
             () => this.core.client.currency,
             () => {
                 if (!window.Blockly?.derivWorkspace) return;
-
-                const trade_options_blocks = window.Blockly?.derivWorkspace
-                    .getAllBlocks()
-                    .filter(
-                        b =>
-                            b.type === 'trade_definition_tradeoptions' ||
-                            b.type === 'trade_definition_multiplier' ||
-                            b.type === 'trade_definition_accumulator' ||
-                            (b.isDescendantOf('trade_definition_multiplier') && b.category_ === 'trade_parameters')
-                    );
-
+                const trade_options_blocks = window.Blockly?.derivWorkspace.getAllBlocks().filter(
+                    b => b.type === 'trade_definition_tradeoptions' ||
+                        b.type === 'trade_definition_multiplier' ||
+                        b.type === 'trade_definition_accumulator' ||
+                        (b.isDescendantOf('trade_definition_multiplier') && b.category_ === 'trade_parameters')
+                );
                 trade_options_blocks.forEach(trade_options_block => setCurrency(trade_options_block));
             }
         );
@@ -136,27 +121,19 @@ export default class AppStore {
                     server_time: this.root_store.common.server_time,
                     ws: api_base.api,
                 };
-
-                if (!ApiHelpers?.instance) {
-                    ApiHelpers.setInstance(this.api_helpers_store);
-                }
-
+                if (!ApiHelpers?.instance) ApiHelpers.setInstance(this.api_helpers_store);
                 const active_symbols = ApiHelpers?.instance?.active_symbols;
                 const contracts_for = ApiHelpers?.instance?.contracts_for;
-
                 if (ApiHelpers?.instance && active_symbols && contracts_for) {
                     if (window.Blockly?.derivWorkspace) {
                         active_symbols?.retrieveActiveSymbols(true).then(() => {
                             contracts_for.disposeCache();
-                            window.Blockly?.derivWorkspace
-                                .getAllBlocks()
+                            window.Blockly?.derivWorkspace.getAllBlocks()
                                 .filter(block => block.type === 'trade_definition_market')
-                                .forEach(block => {
-                                    runIrreversibleEvents(() => {
-                                        const fake_create_event = new window.Blockly.Events.BlockCreate(block);
-                                        window.Blockly.Events.fire(fake_create_event);
-                                    });
-                                });
+                                .forEach(block => runIrreversibleEvents(() => {
+                                    const fake_create_event = new window.Blockly.Events.BlockCreate(block);
+                                    window.Blockly.Events.fire(fake_create_event);
+                                }));
                         });
                     }
                     DBot.initializeInterpreter();
@@ -165,21 +142,15 @@ export default class AppStore {
         );
     };
 
-    registerResidenceChangeReaction = () => {
-        // Country code no longer available from removed get_settings API
-        // Previously set up residence change reaction here
-    };
+    registerResidenceChangeReaction = () => {};
 
     setDBotEngineStores = () => {
-        const { flyout, toolbar, save_modal, dashboard, load_modal, run_panel, blockly_store, summary_card } =
-            this.root_store;
+        const { flyout, toolbar, save_modal, dashboard, load_modal, run_panel, blockly_store, summary_card } = this.root_store;
         const { client, common } = this.core;
         const { handleFileChange } = load_modal;
         const { setLoading } = blockly_store;
         const { setContractUpdateConfig } = summary_card;
-        const {
-            ui: { is_mobile },
-        } = this.core;
+        const { ui: { is_mobile } } = this.core;
 
         this.dbot_store = {
             client,
@@ -205,13 +176,8 @@ export default class AppStore {
     onClickOutsideBlockly = (event: Event) => {
         if (document.querySelector('.injectionDiv')) {
             const path = event.path || (event.composedPath && event.composedPath());
-            const is_click_outside_blockly = !path.some(
-                (el: Element) => el.classList && el.classList.contains('injectionDiv')
-            );
-
-            if (is_click_outside_blockly) {
-                window.Blockly?.hideChaff(/* allowToolbox */ false);
-            }
+            const is_click_outside_blockly = !path.some((el: Element) => el.classList && el.classList.contains('injectionDiv'));
+            if (is_click_outside_blockly) window.Blockly?.hideChaff(false);
         }
     };
 }
