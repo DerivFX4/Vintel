@@ -3,7 +3,6 @@ import { observer } from 'mobx-react-lite';
 import { ToastContainer } from 'react-toastify';
 import AuthLoadingWrapper from '@/components/auth-loading-wrapper';
 import useLiveChat from '@/components/chat/useLiveChat';
-import ChunkLoader from '@/components/loader/chunk-loader';
 import { getUrlBase } from '@/components/shared';
 import TransactionDetailsModal from '@/components/transaction-details';
 import { api_base, ApiHelpers, ServerTime } from '@/external/bot-skeleton';
@@ -14,7 +13,6 @@ import { useStore } from '@/hooks/useStore';
 import useThemeSwitcher from '@/hooks/useThemeSwitcher';
 import { ThemeProvider } from '@deriv-com/quill-ui';
 import { setSmartChartsPublicPath } from '@deriv-com/smartcharts-champion';
-import { localize } from '@deriv-com/translations';
 import Audio from '../components/audio';
 import BlocklyLoading from '../components/blockly-loading';
 import BotStopped from '../components/bot-stopped';
@@ -25,15 +23,10 @@ import 'react-toastify/dist/ReactToastify.css';
 import '../components/bot-notification/bot-notification.scss';
 
 const AppContent = observer(() => {
-    // The public dashboard must not be blocked by Deriv API initialization.
-    // Initialization/loading is only shown after an authenticated OAuth login.
     const [is_api_initialized, setIsApiInitialized] = React.useState(false);
-    const [is_loading, setIsLoading] = React.useState(false);
-
     const store = useStore();
     const { app, transactions, common, client } = store;
     const { is_dark_mode_on } = useThemeSwitcher();
-
     const { recovered_transactions, recoverPendingContracts } = transactions;
     const is_subscribed_to_msg_listener = React.useRef(false);
     const msg_listener = React.useRef(null);
@@ -58,7 +51,7 @@ const AppContent = observer(() => {
         if (connectionStatus === CONNECTION_STATUS.OPENED) {
             setIsApiInitialized(true);
             common.setSocketOpened(true);
-        } else if (connectionStatus !== CONNECTION_STATUS.OPENED) {
+        } else {
             common.setSocketOpened(false);
         }
     }, [common, connectionStatus]);
@@ -106,50 +99,34 @@ const AppContent = observer(() => {
         ServerTime.init(common);
         app.setDBotEngineStores();
         ApiHelpers.setInstance(app.api_helpers_store);
-        import('@/utils/gtm').then(({ default: GTM }) => {
-            GTM.init(store);
-        });
+        import('@/utils/gtm').then(({ default: GTM }) => GTM.init(store));
     };
 
-    const changeActiveSymbolLoadingState = () => {
+    // Initialize Deriv Bot services after authentication, but never block the dashboard.
+    React.useEffect(() => {
+        if (!is_api_initialized || !client.is_logged_in) return;
+
         init();
-
         const retrieveActiveSymbols = () => {
-            const { active_symbols } = ApiHelpers.instance;
-
-            active_symbols.retrieveActiveSymbols(true).then(() => {
-                setIsLoading(false);
+            const activeSymbols = ApiHelpers?.instance?.active_symbols;
+            if (!activeSymbols) return false;
+            activeSymbols.retrieveActiveSymbols(true).catch(error => {
+                console.error('[VintelFX] Failed to retrieve active symbols:', error);
             });
+            return true;
         };
 
-        if (ApiHelpers?.instance?.active_symbols) {
-            retrieveActiveSymbols();
-        } else {
+        if (!retrieveActiveSymbols()) {
             const intervalId = setInterval(() => {
-                if (ApiHelpers?.instance?.active_symbols) {
-                    clearInterval(intervalId);
-                    retrieveActiveSymbols();
-                }
+                if (retrieveActiveSymbols()) clearInterval(intervalId);
             }, 1000);
+            return () => clearInterval(intervalId);
         }
-    };
-
-    // Do not initialize Deriv Bot or show the loader for an anonymous visitor.
-    // After OAuth login, client.is_logged_in becomes true and the existing
-    // Deriv initialization path is activated, showing the loader then.
-    React.useEffect(() => {
-        if (is_api_initialized && client.is_logged_in) {
-            setIsLoading(true);
-            changeActiveSymbolLoadingState();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [is_api_initialized, client.loginid]);
+    }, [is_api_initialized, client.is_logged_in, client.loginid]);
 
     if (common?.error) return null;
 
-    return is_loading ? (
-        <ChunkLoader message={localize('Initializing Deriv Bot account...')} />
-    ) : (
+    return (
         <AuthLoadingWrapper>
             <ThemeProvider theme={is_dark_mode_on ? 'dark' : 'light'}>
                 <BlocklyLoading />
