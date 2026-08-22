@@ -10,27 +10,40 @@ import './workspace.scss';
 const WorkspaceWrapper = observer(() => {
     const { blockly_store } = useStore();
     const { onMount, onUnmount, is_loading } = blockly_store;
+    const [workspace_ready, setWorkspaceReady] = React.useState(!!window.Blockly?.derivWorkspace);
 
     React.useEffect(() => {
         onMount();
+        const timer = window.setInterval(() => {
+            if (window.Blockly?.derivWorkspace) {
+                setWorkspaceReady(true);
+                window.clearInterval(timer);
+            }
+        }, 100);
+
         return () => {
+            window.clearInterval(timer);
             onUnmount();
         };
-    }, []);
+    }, [onMount, onUnmount]);
 
-    if (is_loading) return null;
+    React.useEffect(() => {
+        if (window.Blockly?.derivWorkspace) setWorkspaceReady(true);
+    }, [is_loading]);
 
-    if (window.Blockly?.derivWorkspace)
-        return (
-            <React.Fragment>
-                <Toolbox />
-                <Toolbar />
-                <Flyout />
-                <StopBotModal />
-            </React.Fragment>
-        );
+    // Keep the dashboard visible while the builder initializes. Once Blockly
+    // creates its workspace, mount the complete builder UI around it.
+    if (is_loading && !workspace_ready) return null;
+    if (!workspace_ready && !window.Blockly?.derivWorkspace) return null;
 
-    return null;
+    return (
+        <React.Fragment>
+            <Toolbox />
+            <Toolbar />
+            <Flyout />
+            <StopBotModal />
+        </React.Fragment>
+    );
 });
 
 export default WorkspaceWrapper;
