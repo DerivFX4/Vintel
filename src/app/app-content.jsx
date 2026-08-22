@@ -31,6 +31,7 @@ const AppContent = observer(() => {
     const is_subscribed_to_msg_listener = React.useRef(false);
     const msg_listener = React.useRef(null);
     const { connectionStatus } = useApiBase();
+    const dbot_services_initialized = React.useRef(false);
 
     useDevMode();
 
@@ -95,18 +96,31 @@ const AppContent = observer(() => {
         };
     }, [is_api_initialized, client.is_logged_in, client.loginid, handleMessage, connectionStatus]);
 
-    const init = () => {
+    const init = React.useCallback(() => {
+        if (dbot_services_initialized.current) return;
+        dbot_services_initialized.current = true;
+
+        // Initialise the DBot/Blockly engine independently of authentication.
+        // The dashboard must remain visible while this happens in the background.
         ServerTime.init(common);
         app.setDBotEngineStores();
         ApiHelpers.setInstance(app.api_helpers_store);
         import('@/utils/gtm').then(({ default: GTM }) => GTM.init(store));
-    };
+    }, [app, common, store]);
 
-    // Initialize Deriv Bot services after authentication, but never block the dashboard.
+    // DBot/Blockly is a UI capability, not an authenticated-account capability.
+    // Start it as soon as the application mounts so the builder can populate
+    // its workspace/toolbox even before the user logs in.
+    React.useEffect(() => {
+        init();
+    }, [init]);
+
+    // Account-dependent market data is deliberately kept separate from the
+    // public builder initialization. It starts only after authentication and
+    // the Deriv socket are ready.
     React.useEffect(() => {
         if (!is_api_initialized || !client.is_logged_in) return;
 
-        init();
         const retrieveActiveSymbols = () => {
             const activeSymbols = ApiHelpers?.instance?.active_symbols;
             if (!activeSymbols) return false;
