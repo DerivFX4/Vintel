@@ -9,7 +9,7 @@ export const WS_SERVERS = {
 
 export const isProduction = () => {
     const hostname = window.location.hostname.toLowerCase();
-    return hostname === PRODUCTION_DOMAINS.COM || hostname === `www.${PRODUCTION_DOMAINS.COM}`;
+    return hostname === PRODUCTION_DOMAINS.COM.toLowerCase() || hostname === `www.${PRODUCTION_DOMAINS.COM.toLowerCase()}`;
 };
 export const isLocal = () => /localhost(:\d+)?$/i.test(window.location.hostname);
 
@@ -82,12 +82,23 @@ export const clearCSRFToken = () => {
     sessionStorage.removeItem('oauth_csrf_token_timestamp');
 };
 
-const normaliseScopes = (value: string | undefined) => (value || 'trade').split(/[\s,]+/).filter(Boolean).join(' ');
+/**
+ * Convert common human-entered scope lists into Deriv's exact OAuth scope
+ * identifiers. This prevents values such as "application read and Payment"
+ * from being sent as invalid scope names.
+ */
+const normaliseScopes = (value: string | undefined) => {
+    const raw = (value || 'trade').toLowerCase().replace(/[(),]/g, ' ').replace(/\band\b/g, ' ');
+    const scopes = new Set<string>();
+    if (/\btrade\b/.test(raw)) scopes.add('trade');
+    if (/application[\s_-]*read/.test(raw)) scopes.add('application_read');
+    if (/\bpayment[s]?\b/.test(raw)) scopes.add('payment');
+    return [...scopes].join(' ') || 'trade';
+};
 
 /**
  * Starts Deriv OAuth with PKCE. The OAuth client ID is the App ID issued for
- * the registered OAuth application. Legacy app_id is deliberately omitted:
- * DERIV_APP_ID is used only as the Deriv-App-ID API header after authentication.
+ * the registered OAuth application. Legacy app_id is deliberately omitted.
  */
 export const generateOAuthURL = async (prompt?: string) => {
     const environment = isProduction() ? 'production' : 'staging';
