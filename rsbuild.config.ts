@@ -5,22 +5,16 @@ import { pluginBasicSsl } from '@rsbuild/plugin-basic-ssl';
 
 const path = require('path');
 
+// Only configuration that is safe to expose to the browser is injected here.
+// OAuth tokens, refresh tokens, PATs and any client secret must never be added.
 export default defineConfig({
     plugins: [
-        pluginSass({
-            sassLoaderOptions: {
-                sourceMap: true,
-                sassOptions: {},
-            },
-            exclude: /node_modules/,
-        }),
+        pluginSass({ sassLoaderOptions: { sourceMap: true, sassOptions: {} }, exclude: /node_modules/ }),
         pluginReact(),
         pluginBasicSsl(),
     ],
     source: {
-        entry: {
-            index: './src/main.tsx',
-        },
+        entry: { index: './src/main.tsx' },
         define: {
             'process.env': {
                 APP_ENV: JSON.stringify(process.env.APP_ENV),
@@ -46,11 +40,7 @@ export default defineConfig({
     },
     output: {
         copy: [
-            {
-                from: 'node_modules/@deriv-com/smartcharts-champion/dist/*',
-                to: 'js/smartcharts/[name][ext]',
-                globOptions: { ignore: ['**/*.LICENSE.txt'] },
-            },
+            { from: 'node_modules/@deriv-com/smartcharts-champion/dist/*', to: 'js/smartcharts/[name][ext]', globOptions: { ignore: ['**/*.LICENSE.txt'] } },
             { from: 'node_modules/@deriv-com/smartcharts-champion/dist/assets/*', to: 'assets/[name][ext]' },
             { from: 'node_modules/@deriv-com/smartcharts-champion/dist/assets/fonts/*', to: 'assets/fonts/[name][ext]' },
             { from: 'node_modules/@deriv-com/smartcharts-champion/dist/assets/shaders/*', to: 'assets/shaders/[name][ext]' },
@@ -60,18 +50,5 @@ export default defineConfig({
     html: { template: './index.html' },
     server: { port: 8443, compress: true },
     dev: { hmr: true },
-    performance: {
-        bundleAnalyze: process.env.BUNDLE_ANALYZE === 'true'
-            ? { analyzerMode: 'server', analyzerHost: 'localhost', analyzerPort: 8888, openAnalyzer: true, generateStatsFile: true, statsFilename: 'stats.json' }
-            : undefined,
-    },
-    tools: {
-        rspack: {
-            plugins: [],
-            resolve: {},
-            module: {
-                rules: [{ test: /\.xml$/, exclude: /node_modules/, use: 'raw-loader' }],
-            },
-        },
-    },
+    tools: { rspack: { plugins: [], resolve: {}, module: { rules: [{ test: /\.xml$/, exclude: /node_modules/, use: 'raw-loader' }] } } },
 });
