@@ -2,9 +2,6 @@ import { clearCodeVerifier, getCodeVerifier, isProduction } from '@/components/s
 import { ErrorLogger } from '@/utils/error-logger';
 import brandConfig from '../../brand.config.json';
 
-/**
- * Response from OAuth2 token exchange endpoint
- */
 interface TokenExchangeResponse {
     access_token?: string;
     token_type?: string;
@@ -15,50 +12,38 @@ interface TokenExchangeResponse {
     error_description?: string;
 }
 
-/**
- * Authentication information stored in sessionStorage
- */
 interface AuthInfo {
     access_token: string;
     token_type: string;
     expires_in: number;
-    expires_at: number; // Timestamp when token expires
+    expires_at: number;
     scope?: string;
     refresh_token?: string;
 }
 
-/**
- * Service for handling OAuth2 token exchange operations
- */
 export class OAuthTokenExchangeService {
-    /**
-     * Get the OAuth2 base URL based on environment
-     * @returns OAuth2 base URL (staging or production)
-     */
     private static getOAuth2BaseURL(): string {
-        const environment = isProduction() ? 'production' : 'staging';
-        return brandConfig.platform.auth2_url[environment];
+        return brandConfig.platform.auth2_url[isProduction() ? 'production' : 'staging'];
     }
 
-    /**
-     * Get stored authentication info from sessionStorage
-     * @returns AuthInfo object or null if not found or expired
-     */
+    private static getClientId(): string {
+        return process.env.Deriv_OAuth_Client_id || process.env.CLIENT_ID || '';
+    }
+
+    private static getRedirectUrl(): string {
+        const configured = process.env.Deriv_redirect_url?.trim();
+        return configured ? configured.replace(/\/$/, '') : `${window.location.protocol}//${window.location.host}`;
+    }
+
     static getAuthInfo(): AuthInfo | null {
         try {
-            const authInfoStr = sessionStorage.getItem('auth_info');
-            if (!authInfoStr) {
-                return null;
-            }
-
-            const authInfo: AuthInfo = JSON.parse(authInfoStr);
-
-            // Check if token is expired
+            const raw = sessionStorage.getItem('auth_info');
+            if (!raw) return null;
+            const authInfo = JSON.parse(raw) as AuthInfo;
             if (authInfo.expires_at && Date.now() >= authInfo.expires_at) {
                 this.clearAuthInfo();
                 return null;
             }
-
             return authInfo;
         } catch (error) {
             ErrorLogger.error('OAuth', 'Error parsing auth_info', error);
@@ -66,271 +51,124 @@ export class OAuthTokenExchangeService {
         }
     }
 
-    /**
-     * Clear authentication info from sessionStorage
-     */
     static clearAuthInfo(): void {
         sessionStorage.removeItem('auth_info');
     }
 
-    /**
-     * Check if user is authenticated (has valid access token)
-     * @returns true if authenticated with valid token
-     */
     static isAuthenticated(): boolean {
-        const authInfo = this.getAuthInfo();
-        return authInfo !== null && !!authInfo.access_token;
+        return !!this.getAuthInfo()?.access_token;
     }
 
-    /**
-     * Get the current access token
-     * @returns Access token string or null
-     */
     static getAccessToken(): string | null {
-        const authInfo = this.getAuthInfo();
-        return authInfo?.access_token || null;
+        return this.getAuthInfo()?.access_token || null;
     }
 
-    /**
-     * Exchange authorization code for access token
-     *
-     * This method exchanges the authorization code received from OAuth callback
-     * for an access token that can be used to authenticate API requests.
-     *
-     * @param code - The authorization code from OAuth callback
-     * @returns Promise with token exchange response
-     *
-     * @example
-     * ```typescript
-     * const result = await OAuthTokenExchangeService.exchangeCodeForToken('ory_ac_...');
-     * if (result.access_token) {
-     *   // Store token in session storage
-     *   sessionStorage.setItem('access_token', result.access_token);
-     * }
-     * ```
-     */
-    static async exchangeCodeForToken(code: string): Promise<TokenExchangeResponse> {
+    private static storeAuthInfo(data: TokenExchangeResponse): void {
+        if (!data.access_token) return;
+        const authInfo: AuthInfo = {
+            access_token: data.access_token,
+            token_type: data.token_type || 'bearer',
+            expires_in: data.expires_in || 3600,
+            expires_at: Date.now() + (data.expires_in || 3600) * 1000,
+            scope: data.scope,
+            ...(data.refresh_token ? { refresh_token: data.refresh_token } : {}),
+        };
+        sessionStorage.setItem('auth_info', JSON.stringify(authInfo));
+    }
+
+    private static async initializeExactDerivAccount(accessToken: string): Promise<TokenExchangeResponse | null> {
         try {
-            const baseURL = this.getOAuth2BaseURL();
-            const tokenEndpoint = `${baseURL}token`;
-
-            // Retrieve the PKCE code verifier from session storage
-            const codeVerifier = getCodeVerifier();
-
-            if (!codeVerifier) {
-                ErrorLogger.error('OAuth', 'PKCE code verifier not found or expired');
-                return {
-                    error: 'invalid_request',
-                    error_description:
-                        'PKCE code verifier not found or expired. Please restart the authentication flow.',
-                };
-            }
-            // Prepare the request body
-            // OAuth2 token exchange with PKCE requires:
-            // - grant_type: 'authorization_code'
-            // - code: the authorization code
-            // - redirect_uri: must match the one used in authorization request
-            // - client_id: your OAuth2 client ID
-            // - code_verifier: the PKCE code verifier (proves we initiated the auth flow)
-
-            const clientId = process.env.CLIENT_ID;
-            if (!clientId) {
-                ErrorLogger.error('OAuth', 'CLIENT_ID environment variable is not set');
-                return {
-                    error: 'invalid_client',
-                    error_description: 'CLIENT_ID is not configured. Please set the CLIENT_ID environment variable.',
-                };
+            const { DerivWSAccountsService } = await import('./derivws-accounts.service');
+            // This authenticated endpoint returns Deriv's account records, including the actual
+            // account_id, currency and balance for each account available to this OAuth session.
+            const accounts = await DerivWSAccountsService.fetchAccountsList(accessToken);
+            if (!accounts?.length) {
+                this.clearAuthInfo();
+                return { error: 'no_accounts', error_description: 'No Deriv accounts were returned for this OAuth session.' };
             }
 
-            const protocol = window.location.protocol;
-            const host = window.location.host;
-            const redirectUrl = `${protocol}//${host}`;
+            DerivWSAccountsService.storeAccounts(accounts);
+            const activeLoginId = localStorage.getItem('active_loginid');
+            const active = accounts.find(account => account.account_id === activeLoginId) || accounts[0];
+            localStorage.setItem('active_loginid', active.account_id);
+            const isDemo = active.account_id.startsWith('VRT') || active.account_id.startsWith('VRTC') || active.account_type === 'demo';
+            localStorage.setItem('account_type', isDemo ? 'demo' : 'real');
 
-            const requestBody = new URLSearchParams({
-                grant_type: 'authorization_code',
-                code: code,
-                client_id: clientId,
-                redirect_uri: redirectUrl,
-                code_verifier: codeVerifier, // PKCE: Include code verifier
-            });
-
-            const response = await fetch(tokenEndpoint, {
-                method: 'POST',
-                credentials: 'include', // Include cookies for session-based auth
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: requestBody.toString(),
-            });
-
-            // Parse response
-            const data: TokenExchangeResponse = await response.json();
-
-            // Check for errors in response
-            if (data.error) {
-                ErrorLogger.error('OAuth', `Token exchange error: ${data.error}`, {
-                    error: data.error,
-                    description: data.error_description,
-                });
-                return {
-                    error: data.error,
-                    error_description: data.error_description,
-                };
-            }
-
-            // Success - log token info (without exposing the actual token)
-            if (data.access_token) {
-                // Clear the code verifier after successful exchange
-                clearCodeVerifier();
-                // Store authentication info in sessionStorage
-                const authInfo: AuthInfo = {
-                    access_token: data.access_token,
-                    token_type: data.token_type || 'bearer',
-                    expires_in: data.expires_in || 3600,
-                    expires_at: Date.now() + (data.expires_in || 3600) * 1000,
-                    scope: data.scope,
-                };
-
-                // Include refresh token if provided
-                if (data.refresh_token) {
-                    authInfo.refresh_token = data.refresh_token;
-                }
-
-                // Store as JSON string
-                sessionStorage.setItem('auth_info', JSON.stringify(authInfo));
-
-                // Immediately fetch accounts and initialize WebSocket after token exchange
-                try {
-                    const { DerivWSAccountsService } = await import('./derivws-accounts.service');
-
-                    // Fetch accounts and store in sessionStorage
-                    const accounts = await DerivWSAccountsService.fetchAccountsList(data.access_token);
-
-                    if (accounts && accounts.length > 0) {
-                        // Store accounts
-                        DerivWSAccountsService.storeAccounts(accounts);
-
-                        // Set the first account as active in localStorage
-                        const firstAccount = accounts[0];
-                        localStorage.setItem('active_loginid', firstAccount.account_id);
-
-                        // Set account type
-                        const isDemo =
-                            firstAccount.account_id.startsWith('VRT') || firstAccount.account_id.startsWith('VRTC');
-                        localStorage.setItem('account_type', isDemo ? 'demo' : 'real');
-
-                        ErrorLogger.info('OAuth', 'Accounts fetched and stored', {
-                            loginid: firstAccount.account_id,
-                        });
-
-                        // Trigger WebSocket initialization by reloading or reinitializing api_base
-                        // The api_base will pick up the active_loginid and authorize
-                        const { api_base } = await import('@/external/bot-skeleton');
-                        await api_base.init(true); // Force new connection with the account
-                    } else {
-                        // No accounts returned - this is an error condition
-                        ErrorLogger.error('OAuth', 'No accounts returned after token exchange');
-                        // Clear auth info when no accounts are available to prevent invalid state
-                        this.clearAuthInfo();
-                        return {
-                            error: 'no_accounts',
-                            error_description: 'No accounts available after successful authentication',
-                        };
-                    }
-                } catch (error) {
-                    ErrorLogger.error('OAuth', 'Error fetching accounts after token exchange', error);
-                    // Clear stored auth info to prevent user from being stuck in invalid auth state
-                    // This allows retry without manual sessionStorage clearing
-                    this.clearAuthInfo();
-                    // Return error status to caller for UI feedback
-                    return {
-                        error: 'account_fetch_failed',
-                        error_description:
-                            error instanceof Error ? error.message : 'Failed to fetch accounts after authentication',
-                    };
-                }
-            }
-
-            return data;
-        } catch (error: unknown) {
-            ErrorLogger.error('OAuth', 'Token exchange network or parsing error', error);
+            // Force a fresh authenticated WebSocket/OTP connection. Account switching honours
+            // active_loginid, so later balance refreshes are tied to the selected exact account.
+            const { api_base } = await import('@/external/bot-skeleton');
+            await api_base.init(true);
+            return null;
+        } catch (error) {
+            ErrorLogger.error('OAuth', 'Error fetching Deriv accounts after token exchange', error);
+            this.clearAuthInfo();
             return {
-                error: 'network_error',
-                error_description: error instanceof Error ? error.message : 'Unknown error occurred',
+                error: 'account_fetch_failed',
+                error_description: error instanceof Error ? error.message : 'Failed to fetch Deriv accounts after authentication',
             };
         }
     }
 
-    /**
-     * Refresh access token using refresh token
-     *
-     * @param refreshToken - The refresh token
-     * @returns Promise with token refresh response
-     */
-    static async refreshAccessToken(refreshToken: string): Promise<TokenExchangeResponse> {
+    static async exchangeCodeForToken(code: string): Promise<TokenExchangeResponse> {
         try {
-            const baseURL = this.getOAuth2BaseURL();
-            const tokenEndpoint = `${baseURL}token`;
+            const codeVerifier = getCodeVerifier();
+            if (!codeVerifier) {
+                return { error: 'invalid_request', error_description: 'PKCE code verifier not found or expired. Please restart login.' };
+            }
+            const clientId = this.getClientId();
+            const redirectUrl = this.getRedirectUrl();
+            if (!clientId) {
+                return { error: 'invalid_client', error_description: 'Deriv_OAuth_Client_id is not configured.' };
+            }
 
-            const requestBody = new URLSearchParams({
-                grant_type: 'refresh_token',
-                refresh_token: refreshToken,
-            });
-
-            const response = await fetch(tokenEndpoint, {
+            const response = await fetch(`${this.getOAuth2BaseURL()}token`, {
                 method: 'POST',
                 credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: requestBody.toString(),
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    grant_type: 'authorization_code',
+                    code,
+                    client_id: clientId,
+                    redirect_uri: redirectUrl,
+                    code_verifier: codeVerifier,
+                }).toString(),
             });
-
             const data: TokenExchangeResponse = await response.json();
-
-            if (data.error) {
-                ErrorLogger.error('OAuth', `Token refresh error: ${data.error}`, {
-                    error: data.error,
-                    description: data.error_description,
-                });
-                return {
-                    error: data.error,
-                    error_description: data.error_description,
-                };
+            if (!response.ok || data.error) {
+                return { error: data.error || 'token_exchange_failed', error_description: data.error_description || `OAuth token exchange failed (${response.status}).` };
             }
 
             if (data.access_token) {
-                // Update authentication info in sessionStorage
-                const authInfo: AuthInfo = {
-                    access_token: data.access_token,
-                    token_type: data.token_type || 'bearer',
-                    expires_in: data.expires_in || 3600,
-                    expires_at: Date.now() + (data.expires_in || 3600) * 1000,
-                    scope: data.scope,
-                };
-
-                // Include refresh token if provided (or keep existing one)
-                if (data.refresh_token) {
-                    authInfo.refresh_token = data.refresh_token;
-                } else {
-                    // Keep the existing refresh token if new one not provided
-                    const existingAuth = this.getAuthInfo();
-                    if (existingAuth?.refresh_token) {
-                        authInfo.refresh_token = existingAuth.refresh_token;
-                    }
-                }
-
-                // Store updated auth info
-                sessionStorage.setItem('auth_info', JSON.stringify(authInfo));
+                clearCodeVerifier();
+                this.storeAuthInfo(data);
+                const initError = await this.initializeExactDerivAccount(data.access_token);
+                if (initError) return initError;
             }
-
             return data;
-        } catch (error: unknown) {
+        } catch (error) {
+            ErrorLogger.error('OAuth', 'Token exchange network or parsing error', error);
+            return { error: 'network_error', error_description: error instanceof Error ? error.message : 'Unknown error occurred' };
+        }
+    }
+
+    static async refreshAccessToken(refreshToken: string): Promise<TokenExchangeResponse> {
+        try {
+            const response = await fetch(`${this.getOAuth2BaseURL()}token`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: refreshToken, client_id: this.getClientId() }).toString(),
+            });
+            const data: TokenExchangeResponse = await response.json();
+            if (data.error) return data;
+            if (data.access_token) {
+                if (!data.refresh_token) data.refresh_token = this.getAuthInfo()?.refresh_token;
+                this.storeAuthInfo(data);
+            }
+            return data;
+        } catch (error) {
             ErrorLogger.error('OAuth', 'Token refresh error', error);
-            return {
-                error: 'network_error',
-                error_description: error instanceof Error ? error.message : 'Unknown error occurred',
-            };
+            return { error: 'network_error', error_description: error instanceof Error ? error.message : 'Unknown error occurred' };
         }
     }
 }
