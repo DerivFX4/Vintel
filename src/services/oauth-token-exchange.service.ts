@@ -1,4 +1,4 @@
-import { clearCodeVerifier, getCodeVerifier, isProduction } from '@/components/shared';
+import { clearCodeVerifier, getCodeVerifier } from '@/components/shared';
 import { ErrorLogger } from '@/utils/error-logger';
 
 interface TokenExchangeResponse {
@@ -60,18 +60,14 @@ export class OAuthTokenExchangeService {
         }
 
         try {
-            // The authorization-code exchange is deliberately performed by the
-            // Vercel serverless endpoint. The browser never calls Deriv's token
-            // endpoint directly.
+            // The browser sends the one-time code + PKCE verifier to our
+            // serverless endpoint. The serverless endpoint performs the
+            // sensitive token exchange with Deriv using server-side config.
             const response = await fetch('/api/oauth/token', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'same-origin',
-                body: JSON.stringify({
-                    code,
-                    code_verifier: codeVerifier,
-                    redirect_uri: window.location.origin,
-                }),
+                body: JSON.stringify({ code, code_verifier: codeVerifier }),
             });
 
             const data = (await response.json()) as TokenExchangeResponse;
