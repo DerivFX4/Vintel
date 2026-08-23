@@ -7,16 +7,26 @@ type FreeBot = {
     name: string;
     description?: string;
     badge?: 'NEW' | 'UPDATED';
+    status?: string;
     xml?: string;
     xml_url?: string;
 };
 
 const FREE_BOTS: FreeBot[] = [
     {
+        id: 'vintel-only-ups-downs',
+        name: 'Vintel Only ups/downs',
+        description: 'Only Ups/Only Downs · paired RUNHIGH + RUNLOW entries · Volatility 25 (1s) · $1 stake per side · 3 ticks · TP $10 · SL $20 · Martingale ×1.',
+        badge: 'NEW',
+        status: 'Automated bot',
+        xml_url: 'https://raw.githubusercontent.com/DerivFX4/Vintel/master/src/xml/Vintel%20Only%20ups-downs.xml',
+    },
+    {
         id: 'vintel-even-bot',
         name: 'Vintel Even bot',
         description: 'Even digit bot · Volatility 25 (1s) · $1 stake · TP $5 · SL $10 · Martingale ×2 · resets after 2 wins.',
         badge: 'NEW',
+        status: 'Free Bot',
         xml_url: 'https://raw.githubusercontent.com/DerivFX4/Vintel/master/src/xml/Vintel%20Even%20bot.xml',
     },
 ];
@@ -38,7 +48,7 @@ const FreeBots = () => {
             const xml = await file.text();
             if (!xml.trim().startsWith('<xml')) throw new Error('The uploaded file is not a valid Blockly XML workspace.');
             window.Blockly?.utils?.xml?.textToDom(xml);
-            setBots(current => [{ id: `${file.name}-${Date.now()}`, name: file.name.replace(/\.xml$/i, ''), xml, description: 'Ready to configure in Bot Builder.', badge: 'NEW' }, ...current]);
+            setBots(current => [{ id: `${file.name}-${Date.now()}`, name: file.name.replace(/\.xml$/i, ''), xml, description: 'Ready to configure in Bot Builder.', badge: 'NEW', status: 'Automated bot' }, ...current]);
         } catch (upload_error) {
             setError(upload_error instanceof Error ? upload_error.message : 'Unable to upload this bot.');
         }
@@ -70,7 +80,7 @@ const FreeBots = () => {
             <div className='free-bots-page__list'>
                 {bots.map(bot => (
                     <article className='free-bot-card' key={bot.id}>
-                        <div className='free-bot-card__top'><div className='free-bot-card__icon' aria-hidden='true'>🤖</div><div className='free-bot-card__identity'><h3>{bot.name}</h3><span className='free-bot-card__status'>Free Bot</span></div>{bot.badge && <span className={`free-bot-card__badge free-bot-card__badge--${bot.badge.toLowerCase()}`}>{bot.badge}</span>}</div>
+                        <div className='free-bot-card__top'><div className='free-bot-card__icon' aria-hidden='true'>🤖</div><div className='free-bot-card__identity'><h3>{bot.name}</h3><span className='free-bot-card__status'>{bot.status || 'Automated bot'}</span></div>{bot.badge && <span className={`free-bot-card__badge free-bot-card__badge--${bot.badge.toLowerCase()}`}>{bot.badge}</span>}</div>
                         <div className='free-bot-card__body'><p>{bot.description || 'Ready to configure in Bot Builder.'}</p><div className='free-bot-card__meta'><span>XML Strategy</span><span>Ready to load</span></div></div>
                         <div className='free-bot-card__footer'><span className='free-bot-card__hint'>Load to configure and edit</span><button type='button' onClick={() => void loadBot(bot)} disabled={loading_id === bot.id}>{loading_id === bot.id ? 'Loading…' : 'Load'}</button></div>
                     </article>
