@@ -27,7 +27,7 @@ const BotBuilder = observer(() => {
 
     // TODO: fix
     // const isMounted = useIsMounted();
-    // const { data: remote_config_data } = useRemoteConfig(isMounted());
+    // const { data: remote_config_data } = useRemoteConfig(isMounted);
     let deleted_block_id: null | string = null;
 
     React.useEffect(() => {
@@ -51,6 +51,46 @@ const BotBuilder = observer(() => {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [is_running]);
+
+    React.useEffect(() => {
+        const loadFreeBot = (event: Event) => {
+            const detail = (event as CustomEvent<{ name: string; xml: string }>).detail;
+            if (!detail?.xml) return;
+
+            const applyXml = (attempt = 0) => {
+                const workspace = window.Blockly?.derivWorkspace;
+                if (!workspace || !window.Blockly) {
+                    if (attempt < 30) window.setTimeout(() => applyXml(attempt + 1), 100);
+                    return;
+                }
+
+                try {
+                    const BlocklyApi = window.Blockly;
+                    const xmlDom = BlocklyApi.utils?.xml?.textToDom
+                        ? BlocklyApi.utils.xml.textToDom(detail.xml)
+                        : BlocklyApi.Xml.textToDom(detail.xml);
+                    workspace.clear();
+                    if (BlocklyApi.Xml.domToWorkspace) {
+                        BlocklyApi.Xml.domToWorkspace(xmlDom, workspace);
+                    } else if (BlocklyApi.Xml.domToWorkspace) {
+                        BlocklyApi.Xml.domToWorkspace(workspace, xmlDom);
+                    }
+                    workspace.render?.();
+                    workspace.cleanUp?.();
+                    workspace.setScale?.(1);
+                    workspace.setSelected?.(null);
+                    window.setTimeout(() => workspace.zoomToFit?.(), 100);
+                } catch (error) {
+                    console.error('[VintelFX] Unable to configure free bot XML:', error);
+                }
+            };
+
+            applyXml();
+        };
+
+        window.addEventListener('vintelfx-load-free-bot', loadFreeBot);
+        return () => window.removeEventListener('vintelfx-load-free-bot', loadFreeBot);
+    }, []);
 
     const handleBlockChangeOnBotRun = (e: Event) => {
         const { is_reset_button_clicked } = toolbar;
