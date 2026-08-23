@@ -17,6 +17,12 @@ export default Engine =>
 
                     this.setContractFlags(contract);
 
+                    // Dedicated settlement path for the isolated Only Ups/Only Downs pair.
+                    if (this.pairContractIds?.length) {
+                        this.handlePairContract(contract);
+                        return;
+                    }
+
                     this.data.contract = contract;
 
                     broadcastContract({ accountID: api_base.account_info.loginid, ...contract });
@@ -44,6 +50,51 @@ export default Engine =>
             api_base.pushSubscription(subscription);
         }
 
+        handlePairContract(contract) {
+            this.data.contract = contract;
+
+            broadcastContract({ accountID: api_base.account_info.loginid, ...contract });
+
+            if (!this.isSold) {
+                this.store.dispatch(openContractReceived());
+                return;
+            }
+
+            if (!this.pairSettledContracts) {
+                this.pairSettledContracts = new Set();
+            }
+
+            // Ignore duplicate sold updates for the same contract subscription.
+            if (this.pairSettledContracts.has(contract.contract_id)) {
+                return;
+            }
+
+            this.pairSettledContracts.add(contract.contract_id);
+            this.updateTotals(contract);
+
+            contractStatus({
+                id: 'contract.sold',
+                data: contract.transaction_ids.sell,
+                contract,
+            });
+
+            // Do not finish the trade cycle until both legs of the pair are sold.
+            if (this.pairSettledContracts.size < this.pairContractIds.length) {
+                return;
+            }
+
+            this.contractId = '';
+            this.pairContractIds = [];
+            this.pairSettledContracts.clear();
+            clearTimeout(this.transaction_recovery_timeout);
+
+            if (this.afterPromise) {
+                this.afterPromise();
+            }
+
+            this.store.dispatch(sell());
+        }
+
         waitForAfter() {
             return new Promise(resolve => {
                 this.afterPromise = resolve;
@@ -60,6 +111,10 @@ export default Engine =>
         }
 
         expectedContractId(contractId) {
+            if (this.pairContractIds?.length) {
+                return this.pairContractIds.includes(contractId);
+            }
+
             return this.contractId && contractId === this.contractId;
         }
 
