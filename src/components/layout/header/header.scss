@@ -21,37 +21,32 @@
     display: inline-flex;
     align-items: center;
     margin-inline-start: 0.9rem;
-    font-size: 2.8rem;
+    font-size: 2.4rem;
+    font-style: italic;
     font-weight: 900;
     line-height: 1;
-    letter-spacing: -0.08rem;
+    letter-spacing: -0.07rem;
     white-space: nowrap;
     user-select: none;
 
     &__vintel {
         color: #0b2d5c;
-        -webkit-text-stroke: 1px #ff0000;
-        text-shadow:
-            -1px -1px 0 #ff0000,
-             1px -1px 0 #ff0000,
-            -1px  1px 0 #ff0000,
-             1px  1px 0 #ff0000;
+        -webkit-text-stroke: 0.5px #ff0000;
+        paint-order: stroke fill;
+        text-shadow: none;
     }
 
     &__fx {
         color: #ff0000;
-        -webkit-text-stroke: 1px #6ecbff;
-        text-shadow:
-            -1px -1px 0 #6ecbff,
-             1px -1px 0 #6ecbff,
-            -1px  1px 0 #6ecbff,
-             1px  1px 0 #6ecbff;
+        -webkit-text-stroke: 0.5px #6ecbff;
+        paint-order: stroke fill;
+        text-shadow: none;
     }
 
     @include mobile-or-tablet-screen {
-        font-size: 3.2rem;
+        font-size: 2.6rem;
         margin-inline-start: 0.7rem;
-        letter-spacing: -0.1rem;
+        letter-spacing: -0.08rem;
     }
 }
 
