@@ -102,12 +102,12 @@
     &__icon { margin-right: 7px; }
     &__balance {
         padding: 0 1rem 0.1rem 0;
-        color: #78afa9 !important;
+        color: #7db1ae !important;
         font-weight: 700 !important;
 
         span,
         div,
-        p { color: #78afa9 !important; font-weight: 700 !important; }
+        p { color: #7db1ae !important; font-weight: 700 !important; }
     }
     &__container { max-height: 80vh; overflow: auto; background: var(--general-main-1); background-color: var(--general-main-2); border-radius: 4px; box-shadow: 0 8px 16px 0 var(--shadow-menu) !important; position: absolute; transition: transform 0.3s ease, opacity 0.25s linear; width: 320px; top: 55px; right: unset; inset-inline-end: 0; }
 }
