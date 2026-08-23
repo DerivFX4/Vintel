@@ -1,5 +1,6 @@
 .acc-info {
     &__balance-section {
+        align-items: center;
         gap: 0.8rem;
     }
 
@@ -9,13 +10,16 @@
         flex: 0 0 auto;
         height: 3.2rem;
         justify-content: center;
+        min-height: 3.2rem;
+        min-width: 3.2rem;
         width: 3.2rem;
     }
 
     &__account-icon-svg {
         display: block;
-        height: 3.2rem;
-        width: 3.2rem;
+        height: 100%;
+        shape-rendering: geometricPrecision;
+        width: 100%;
     }
 
     &__balance {
@@ -23,6 +27,7 @@
         font-size: 1.6rem !important;
         font-weight: 800 !important;
         letter-spacing: 0.02em;
+        line-height: 3.2rem;
         white-space: nowrap;
     }
 
@@ -35,9 +40,19 @@
         margin-left: 0.4rem;
     }
 
+    // Android/mobile sizing: keep the reference icon visibly clear at the
+    // same practical size as the 270px-wide reference screenshot.
     @media (max-width: 600px) {
+        &__account-icon {
+            height: 3.2rem;
+            min-height: 3.2rem;
+            min-width: 3.2rem;
+            width: 3.2rem;
+        }
+
         &__balance {
             font-size: 1.5rem !important;
+            line-height: 3.2rem;
         }
     }
 }
