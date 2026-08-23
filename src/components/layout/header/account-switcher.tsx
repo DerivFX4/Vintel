@@ -95,13 +95,16 @@ const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
                     <span className='acc-info__id' aria-hidden='true'></span>
                     <div className='acc-info__content'>
                         <div className='acc-info__account-type-header'>
-                            <Text as='p' size='xs' className='acc-info__account-type'>
-                                {isVirtual ? (
-                                    <Localize i18n_default_text='Demo account' />
-                                ) : (
-                                    <Localize i18n_default_text='Real account' />
-                                )}
-                            </Text>
+                            <span
+                                className={classNames('acc-info__account-icon', {
+                                    'acc-info__account-icon--virtual': isVirtual,
+                                    'acc-info__account-icon--real': !isVirtual,
+                                })}
+                                aria-label={isVirtual ? 'Demo account' : 'Real USD account'}
+                                title={isVirtual ? 'Demo account' : 'Real USD account'}
+                            >
+                                {isVirtual ? 'D' : '$'}
+                            </span>
                             {showChevron && (
                                 <span
                                     className={classNames('acc-info__select-arrow', {
