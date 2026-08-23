@@ -42,7 +42,7 @@ const AppWrapper = observer(() => {
     const { clear } = summary_card;
     const { DASHBOARD, BOT_BUILDER } = DBOT_TABS;
     const init_render = React.useRef(true);
-    const hash = ['dashboard', 'bot_builder', 'signal_ai', 'chart', 'tutorial'];
+    const hash = ['dashboard', 'bot_builder', 'signal_ai', 'chart', 'tutorial', 'deriv_course'];
     const { isDesktop } = useDevice();
     const location = useLocation();
     const navigate = useNavigate();
@@ -186,6 +186,7 @@ const AppWrapper = observer(() => {
                 <div label={<><span aria-hidden='true'>🧠</span><Localize i18n_default_text='Signal AI' /></>} id='id-signal-ai'><SignalAI /></div>
                 <div label={<><span aria-hidden='true'>📊</span><Localize i18n_default_text='Charts' /></>} id={is_chart_modal_visible || is_trading_view_modal_visible ? 'id-charts--disabled' : 'id-charts'}><Suspense fallback={<ChunkLoader message={localize('Please wait, loading chart...')} />}><ChartWrapper show_digits_stats={false} /></Suspense></div>
                 <div label={<><span aria-hidden='true'>📚</span><Localize i18n_default_text='Tutorials' /></>} id='id-tutorials'><div className='tutorials-wrapper'><Suspense fallback={<ChunkLoader message={localize('Please wait, loading tutorials...')} />}><Tutorial handleTabChange={handleTabChange} /></Suspense></div></div>
+                <div label={<><span aria-hidden='true'>🎓</span><Localize i18n_default_text='Deriv Course' /></>} id='id-deriv-course' />
             </Tabs>
             {!isDesktop && right_tab_shadow && <span className='tabs-shadow tabs-shadow--right' />}
         </div></div></div>
