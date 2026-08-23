@@ -94,37 +94,18 @@ const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
                 >
                     <span className='acc-info__id' aria-hidden='true'></span>
                     <div className='acc-info__content'>
-                        <div className='acc-info__account-type-header'>
-                            <span
-                                className={classNames('acc-info__account-icon', {
-                                    'acc-info__account-icon--virtual': isVirtual,
-                                    'acc-info__account-icon--real': !isVirtual,
-                                })}
-                                aria-label={isVirtual ? 'Demo account' : 'Real USD account'}
-                                title={isVirtual ? 'Demo account' : 'Real USD account'}
-                            >
-                                {isVirtual ? 'D' : '$'}
-                            </span>
-                            {showChevron && (
-                                <span
-                                    className={classNames('acc-info__select-arrow', {
-                                        'acc-info__select-arrow--invert': isOpen,
-                                    })}
-                                >
-                                    <svg width='12' height='12' viewBox='0 0 12 12' fill='none'>
-                                        <path
-                                            d='M2 4L6 8L10 4'
-                                            stroke='currentColor'
-                                            strokeWidth='1.5'
-                                            strokeLinecap='round'
-                                            strokeLinejoin='round'
-                                        />
-                                    </svg>
-                                </span>
-                            )}
-                        </div>
                         {(typeof balance !== 'undefined' || !currency) && (
                             <div className='acc-info__balance-section'>
+                                <span
+                                    className={classNames('acc-info__account-icon', {
+                                        'acc-info__account-icon--virtual': isVirtual,
+                                        'acc-info__account-icon--real': !isVirtual,
+                                    })}
+                                    aria-label={isVirtual ? 'Demo account' : 'Real USD account'}
+                                    title={isVirtual ? 'Demo account' : 'Real USD account'}
+                                >
+                                    {isVirtual ? 'D' : '$'}
+                                </span>
                                 <p
                                     data-testid='dt_balance'
                                     className={classNames('acc-info__balance', {
@@ -137,6 +118,23 @@ const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
                                         `${balance} ${getCurrencyDisplayCode(currency)}`
                                     )}
                                 </p>
+                                {showChevron && (
+                                    <span
+                                        className={classNames('acc-info__select-arrow', {
+                                            'acc-info__select-arrow--invert': isOpen,
+                                        })}
+                                    >
+                                        <svg width='12' height='12' viewBox='0 0 12 12' fill='none'>
+                                            <path
+                                                d='M2 4L6 8L10 4'
+                                                stroke='currentColor'
+                                                strokeWidth='1.5'
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                            />
+                                        </svg>
+                                    </span>
+                                )}
                             </div>
                         )}
                     </div>
