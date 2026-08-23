@@ -5,3 +5,24 @@
 .vintelfx-chunk-loader__percent::after {
     content: none;
 }
+
+/* Keep the general VintelFX loader visible for the complete branded sequence. */
+.vintelfx-chunk-loader__progress-fill {
+    animation-duration: 8s;
+}
+
+.vintelfx-chunk-loader--exit {
+    pointer-events: none;
+    animation: vintelfx-loader-fade-out 650ms ease forwards;
+}
+
+@keyframes vintelfx-loader-fade-out {
+    from {
+        opacity: 1;
+        visibility: visible;
+    }
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
