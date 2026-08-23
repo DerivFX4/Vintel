@@ -10,14 +10,7 @@ type FreeBot = {
     xml_url: string;
 };
 
-// New XML uploads are inserted at the top so the newest bot appears first.
-const FREE_BOTS: FreeBot[] = [
-    {
-        id: 'utt-taichi-under-ladder-ldp-dbot',
-        name: 'UTT_TaiChi_Under_Ladder__LDP DBot',
-        xml_url: 'https://raw.githubusercontent.com/DerivFX4/Vintel/master/src/xml/UTT_TaiChi_Under_Ladder__LDP%20DBot.xml',
-    },
-];
+const FREE_BOTS: FreeBot[] = [];
 
 const FreeBots = () => {
     const { dashboard } = useStore();
