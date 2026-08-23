@@ -27,6 +27,7 @@ interface IQuickStrategyStore {
     setSelectedStrategy: (strategy: string) => void;
     setValue: (name: string, value: string) => void;
     onSubmit: (data: TFormData) => void;
+    loadFreeBot: (xml: string, name: string) => Promise<void>;
     toggleStopBotDialog: () => void;
     setCurrentDurationMinMax: (min: number, max: number) => void;
     setOptionsLoading: (is_loading: boolean) => void;
@@ -65,9 +66,16 @@ export default class QuickStrategyStore implements IQuickStrategyStore {
         if (savedStrategy) this.selected_strategy_for_notofy = savedStrategy;
         reaction(() => this.is_open, () => { if (!this.is_open) this.selected_strategy = 'MARTINGALE'; });
 
-        // Signal AI uses the established Quick Strategy pipeline instead of directly mutating Blockly.
-        // Stop propagation so the legacy Signal AI listener in main.tsx cannot also load a second bot.
+        // Free Bots uses this same Quick Strategy store as the single XML -> Blockly loading pipeline.
         if (typeof window !== 'undefined') {
+            window.addEventListener('vintelfx-load-free-bot', (event: Event) => {
+                const detail = (event as CustomEvent<{ name?: string; xml?: string }>).detail;
+                if (!detail?.xml) return;
+                void this.loadFreeBot(detail.xml, detail.name || 'Free Bot');
+            });
+
+            // Signal AI uses the established Quick Strategy pipeline instead of directly mutating Blockly.
+            // Stop propagation so the legacy Signal AI listener in main.tsx cannot also load a second bot.
             window.addEventListener('vintelfx-load-and-run-signal-bot', (event: Event) => {
                 const detail = (event as CustomEvent<{ result?: any; config?: any }>).detail;
                 if (!detail?.result || this.root_store.run_panel.is_running) return;
@@ -76,6 +84,24 @@ export default class QuickStrategyStore implements IQuickStrategyStore {
             });
         }
     }
+
+    loadFreeBot = async (xml: string, name: string) => {
+        const workspace = window.Blockly?.derivWorkspace;
+        if (!workspace) throw new Error('Bot Builder workspace is not ready.');
+
+        // Reuse the Quick Strategy loader used by the existing strategy pipeline.
+        // This keeps Free Bots on the same Blockly, compatibility and unsaved-bot path.
+        const strategy_dom = window.Blockly.utils.xml.textToDom(xml);
+        await load({
+            block_string: window.Blockly.Xml.domToText(strategy_dom),
+            file_name: name,
+            workspace,
+            from: save_types.UNSAVED,
+            drop_event: null,
+            strategy_id: null,
+            showIncompatibleStrategyDialog: null,
+        });
+    };
 
     loadSignalWithQuickStrategy = async (result: any, signal_config: any) => {
         const signal = String(result.signal || '').toUpperCase();
@@ -91,10 +117,7 @@ export default class QuickStrategyStore implements IQuickStrategyStore {
             last_digit_prediction: prediction,
             stake: Number(signal_config.stake) || 0.5,
             loss: Number(signal_config.stop_loss) || 50,
-            // The Quick Strategy Martingale XML consumes `size` for the real loss multiplier.
             size: Number(signal_config.martingale) || 2,
-            // Quick Strategy's current Martingale template has no native "number of wins" stop field.
-            // Preserve the requested target for the app/session without changing the existing strategy XML.
             target_wins: Number(signal_config.wins) || 4,
             duration: 1,
             durationtype: 't',
