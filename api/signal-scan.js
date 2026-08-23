@@ -1,6 +1,9 @@
 const WebSocket = require('ws');
 
-const ENDPOINT = 'wss://ws.binaryws.com/websockets/v3';
+// Public market-data WebSocket: no OAuth/PAT is required for ticks or history.
+// This keeps Signal AI independent from the user's trading authentication.
+const ENDPOINT = 'wss://api.derivws.com/trading/v1/options/ws/public';
+
 const MARKETS = [
     { symbol: '1HZ10V', display_name: 'Volatility 10 (1s) Index' },
     { symbol: '1HZ25V', display_name: 'Volatility 25 (1s) Index' },
@@ -26,7 +29,7 @@ function scanLiveMarkets(scanType, barrier) {
         const pending = new Map();
         const results = [];
         let settled = false;
-        const timeout = setTimeout(() => finish(new Error('Deriv market scan timed out')), 25000);
+        const timeout = setTimeout(() => finish(new Error('Deriv live market scan timed out')), 25000);
 
         function finish(error) {
             if (settled) return;
@@ -54,17 +57,37 @@ function scanLiveMarkets(scanType, barrier) {
 
         ws.on('message', raw => {
             let data;
-            try { data = JSON.parse(raw.toString()); } catch (_) { return; }
+            try {
+                data = JSON.parse(raw.toString());
+            } catch (_) {
+                return;
+            }
+
             const reqId = data.req_id;
             if (!pending.has(reqId)) return;
+
             const market = pending.get(reqId);
             pending.delete(reqId);
-            const prices = data.history && Array.isArray(data.history.prices) ? data.history.prices : [];
-            const digits = prices.map(lastDigit).filter(digit => Number.isInteger(digit) && digit >= 0 && digit <= 9);
+
+            if (data.error) {
+                finish(new Error(data.error.message || `Deriv rejected ${market.symbol}`));
+                return;
+            }
+
+            const prices = data.history && Array.isArray(data.history.prices)
+                ? data.history.prices
+                : [];
+            const digits = prices
+                .map(lastDigit)
+                .filter(digit => Number.isInteger(digit) && digit >= 0 && digit <= 9);
+
             if (digits.length) {
                 const even = digits.filter(digit => digit % 2 === 0).length;
                 const under = digits.filter(digit => digit <= barrier).length;
-                const preferred = scanType === 'over_under' ? Math.max(under, digits.length - under) : Math.max(even, digits.length - even);
+                const preferred = scanType === 'over_under'
+                    ? Math.max(under, digits.length - under)
+                    : Math.max(even, digits.length - even);
+
                 results.push({
                     market: market.symbol,
                     display_name: market.display_name,
@@ -75,27 +98,41 @@ function scanLiveMarkets(scanType, barrier) {
                     sample: digits.length,
                 });
             }
+
             if (pending.size === 0) finish();
         });
 
         ws.on('error', error => finish(error));
         ws.on('close', () => {
-            if (!settled) finish(new Error('Deriv WebSocket closed before the scan completed'));
+            if (!settled) finish(new Error('Deriv public market WebSocket closed before the scan completed'));
         });
     });
 }
 
 module.exports = async (req, res) => {
-    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+
+    if (req.method && req.method !== 'GET') {
+        res.status(405).json({ error: 'Method not allowed' });
+        return;
+    }
+
     const scanType = req.query.scan_type === 'over_under' ? 'over_under' : 'even_odd';
     const rawBarrier = Number(req.query.barrier);
     const barrier = [4, 5, 6].includes(rawBarrier) ? rawBarrier : 4;
 
     try {
         const results = await scanLiveMarkets(scanType, barrier);
-        if (!results.length) throw new Error('No live tick history was returned');
-        res.status(200).json({ results, source: 'live_deriv_market_feed' });
+        if (!results.length) throw new Error('No live tick history was returned by Deriv');
+        res.status(200).json({
+            results,
+            source: 'deriv_public_live_market_feed',
+            sampled_at: new Date().toISOString(),
+        });
     } catch (error) {
-        res.status(502).json({ error: error instanceof Error ? error.message : 'Live Deriv market scan failed' });
+        res.status(502).json({
+            error: error instanceof Error ? error.message : 'Live Deriv market scan failed',
+        });
     }
 };
