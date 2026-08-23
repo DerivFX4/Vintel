@@ -66,16 +66,12 @@ export default class QuickStrategyStore implements IQuickStrategyStore {
         if (savedStrategy) this.selected_strategy_for_notofy = savedStrategy;
         reaction(() => this.is_open, () => { if (!this.is_open) this.selected_strategy = 'MARTINGALE'; });
 
-        // Free Bots uses this same Quick Strategy store as the single XML -> Blockly loading pipeline.
         if (typeof window !== 'undefined') {
             window.addEventListener('vintelfx-load-free-bot', (event: Event) => {
                 const detail = (event as CustomEvent<{ name?: string; xml?: string }>).detail;
                 if (!detail?.xml) return;
                 void this.loadFreeBot(detail.xml, detail.name || 'Free Bot');
             });
-
-            // Signal AI uses the established Quick Strategy pipeline instead of directly mutating Blockly.
-            // Stop propagation so the legacy Signal AI listener in main.tsx cannot also load a second bot.
             window.addEventListener('vintelfx-load-and-run-signal-bot', (event: Event) => {
                 const detail = (event as CustomEvent<{ result?: any; config?: any }>).detail;
                 if (!detail?.result || this.root_store.run_panel.is_running) return;
@@ -86,11 +82,32 @@ export default class QuickStrategyStore implements IQuickStrategyStore {
     }
 
     loadFreeBot = async (xml: string, name: string) => {
+        // Vintel Even bot is generated from the repository's known-good Quick Strategy
+        // template instead of directly executing its earlier malformed custom XML.
+        // action: LOAD deliberately prevents automatic trading.
+        if (name === 'Vintel Even bot') {
+            const form_data: TFormData = {
+                ...this.form_data,
+                symbol: '1HZ25V',
+                tradetype: 'evenodd',
+                type: 'DIGITEVEN',
+                stake: 1,
+                profit: 5,
+                loss: 10,
+                size: 2,
+                target_wins: 2,
+                duration: 1,
+                durationtype: 't',
+                action: 'LOAD',
+            };
+            this.selected_strategy = 'MARTINGALE';
+            this.form_data = { ...this.form_data, ...form_data };
+            await this.onSubmit(form_data);
+            return;
+        }
+
         const workspace = window.Blockly?.derivWorkspace;
         if (!workspace) throw new Error('Bot Builder workspace is not ready.');
-
-        // Reuse the Quick Strategy loader used by the existing strategy pipeline.
-        // This keeps Free Bots on the same Blockly, compatibility and unsaved-bot path.
         const strategy_dom = window.Blockly.utils.xml.textToDom(xml);
         await load({
             block_string: window.Blockly.Xml.domToText(strategy_dom),
