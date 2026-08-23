@@ -3,6 +3,8 @@ import { config } from '../../../../constants/config';
 import { getContractTypeOptions } from '../../../shared';
 import { excludeOptionFromContextMenu, modifyContextMenu } from '../../../utils';
 
+const MARTINGALE_KEY = 'vintelfx_martingale_multiplier';
+
 window.Blockly.Blocks.trade_definition_contracttype = {
     init() {
         this.jsonInit({
@@ -23,6 +25,20 @@ window.Blockly.Blocks.trade_definition_contracttype = {
             previousStatement: null,
             nextStatement: null,
         });
+
+        this.appendDummyInput('MARTINGALE')
+            .appendField(localize('Martingale'))
+            .appendField(
+                new window.Blockly.FieldNumber(
+                    Number(window.localStorage.getItem(MARTINGALE_KEY)) || 2,
+                    1,
+                    100,
+                    0.01
+                ),
+                'MARTINGALE_MULTIPLIER'
+            )
+            .appendField('×');
+
         this.setMovable(false);
         this.setDeletable(false);
     },
@@ -57,6 +73,16 @@ window.Blockly.Blocks.trade_definition_contracttype = {
                     event_group: event.group,
                     default_value: is_load_event ? contract_type_list.getValue() : undefined,
                 });
+            }
+
+            if (event.name === 'MARTINGALE_MULTIPLIER' && event.blockId === this.id) {
+                const multiplier = Number(event.newValue);
+                if (Number.isFinite(multiplier) && multiplier >= 1) {
+                    window.localStorage.setItem(MARTINGALE_KEY, String(multiplier));
+                    window.dispatchEvent(
+                        new CustomEvent('vintelfx-martingale-change', { detail: { value: multiplier } })
+                    );
+                }
             }
         }
     },
