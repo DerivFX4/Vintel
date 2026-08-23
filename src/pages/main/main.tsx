@@ -31,11 +31,12 @@ import './main.scss';
 const ChartWrapper = lazy(() => import('../chart/chart-wrapper'));
 const Tutorial = lazy(() => import('../tutorials'));
 
+const SIGNAL_MARTINGALE_KEY = 'vintelfx_martingale_multiplier';
+
 const configureExistingSignalBot = (workspace: any, result: any, config: any) => {
     const blocks = workspace.getAllBlocks();
     const tradeDefinition = blocks.find((block: any) => block.type === 'trade_definition');
     if (!tradeDefinition) throw new Error('Existing trade definition block was not found');
-    const findChild = (type: string) => blocks.find((block: any) => block.type === type && (block.getSurroundParent?.() || block === tradeDefinition));
     const tradeTypeBlock = blocks.find((block: any) => block.type === 'trade_definition_tradetype');
     const marketBlock = blocks.find((block: any) => block.type === 'trade_definition_market');
     const contractBlock = blocks.find((block: any) => block.type === 'trade_definition_contracttype');
@@ -58,11 +59,13 @@ const configureExistingSignalBot = (workspace: any, result: any, config: any) =>
     setField(marketBlock, 'MARKET_LIST', 'synthetic_index');
     setField(marketBlock, 'SUBMARKET_LIST', 'random_index');
     setFirstValid(marketBlock, 'SYMBOL_LIST', [result.market]);
+    window.localStorage.setItem(SIGNAL_MARTINGALE_KEY, String(Number(config?.martingale) || 2));
+    window.dispatchEvent(new CustomEvent('vintelfx-martingale-change', { detail: { value: Number(config?.martingale) || 2 } }));
     if (tradeTypeBlock) {
         setField(tradeTypeBlock, 'TRADETYPECAT_LIST', 'digits');
         window.setTimeout(() => {
             setFirstValid(tradeTypeBlock, 'TRADETYPE_LIST', [tradeType]);
-            setFirstValid(contractBlock, 'TYPE_LIST', ['both', purchaseType]);
+            setFirstValid(contractBlock, 'TYPE_LIST', ['both']);
             setFirstValid(purchaseBlock, 'PURCHASE_LIST', [purchaseType]);
             if (overUnder && optionsBlock) {
                 const prediction = Number(String(result.signal).split(' ')[1]);
@@ -77,6 +80,30 @@ const configureExistingSignalBot = (workspace: any, result: any, config: any) =>
             workspace.cleanUp?.();
         }, 650);
     }
+};
+
+const MartingaleParameter = () => {
+    const [value, setValue] = useState(() => Number(window.localStorage.getItem(SIGNAL_MARTINGALE_KEY)) || 2);
+    useEffect(() => {
+        const onChange = (event: Event) => {
+            const next = Number((event as CustomEvent<{ value?: number }>).detail?.value);
+            if (Number.isFinite(next) && next > 0) setValue(next);
+        };
+        window.addEventListener('vintelfx-martingale-change', onChange);
+        return () => window.removeEventListener('vintelfx-martingale-change', onChange);
+    }, []);
+    const updateValue = (raw: string) => {
+        const next = Number(raw);
+        if (!Number.isFinite(next) || next <= 0) return;
+        setValue(next);
+        window.localStorage.setItem(SIGNAL_MARTINGALE_KEY, String(next));
+        window.dispatchEvent(new CustomEvent('vintelfx-martingale-change', { detail: { value: next } }));
+    };
+    return <div className='vintelfx-martingale-parameter' style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', marginTop: 8, borderTop: '1px solid rgba(0,0,0,.08)' }}>
+        <label htmlFor='vintelfx-martingale-input' style={{ flex: 1, fontWeight: 600 }}>Martingale multiplier</label>
+        <input id='vintelfx-martingale-input' aria-label='Martingale multiplier' type='number' min='1.01' step='0.01' value={value} onChange={event => updateValue(event.target.value)} style={{ width: 92, padding: '6px 8px' }} />
+        <span>×</span>
+    </div>;
 };
 
 const AppWrapper = observer(() => {
@@ -114,6 +141,6 @@ const AppWrapper = observer(() => {
     React.useEffect(() => { const trashcan_init_id = setTimeout(() => { if (active_tab === BOT_BUILDER && Blockly?.derivWorkspace?.trashcan) { const trashcanY = window.innerHeight - 250; const trashcanX = is_drawer_open ? (isDbotRTL() ? 380 : window.innerWidth - 460) : (isDbotRTL() ? 20 : window.innerWidth - 100); Blockly?.derivWorkspace?.trashcan?.setTrashcanPosition(trashcanX, trashcanY); } }, 100); return () => clearTimeout(trashcan_init_id); }, [active_tab, is_drawer_open]);
     useEffect(() => { let timer: ReturnType<typeof setTimeout>; if (dashboard_strategies.length > 0) timer = setTimeout(() => updateWorkspaceName()); return () => { if (timer) clearTimeout(timer); }; }, [dashboard_strategies, active_tab]);
     const handleLoginGeneration = async () => { const oauthUrl = await generateOAuthURL(); if (oauthUrl) window.location.replace(oauthUrl); else console.error('Failed to generate OAuth URL'); };
-    return <React.Fragment><div className='main'><div className={classNames('main__container', { 'main__container--active': active_tour && active_tab === DASHBOARD && !isDesktop })}><div>{!isDesktop && left_tab_shadow && <span className='tabs-shadow tabs-shadow--left' />}<Tabs active_index={active_tab} className='main__tabs' onTabItemClick={handleTabChange} top><div label={<><span aria-hidden='true'>🏠</span><Localize i18n_default_text='Dashboard' /></>} id='id-dbot-dashboard'><Dashboard handleTabChange={handleTabChange} /></div><div label={<><span aria-hidden='true'>🧩</span><Localize i18n_default_text='Bot Builder' /></>} id='id-bot-builder' /><div label={<><span aria-hidden='true'>🧠</span><Localize i18n_default_text='Signal AI' /></>} id='id-signal-ai'><SignalAI /></div><div label={<><span aria-hidden='true'>🤖</span><Localize i18n_default_text='Free Bots' /></>} id='id-free-bots'><FreeBots /></div><div label={<><span aria-hidden='true'>📊</span><Localize i18n_default_text='Charts' /></>} id={is_chart_modal_visible || is_trading_view_modal_visible ? 'id-charts--disabled' : 'id-charts'}><Suspense fallback={<ChunkLoader message={localize('Please wait, loading chart...')} />}><ChartWrapper show_digits_stats={false} /></Suspense></div><div label={<><span aria-hidden='true'>📚</span><Localize i18n_default_text='Tutorials' /></>} id='id-tutorials'><div className='tutorials-wrapper'><Suspense fallback={<ChunkLoader message={localize('Please wait, loading tutorials...')} />}><Tutorial handleTabChange={handleTabChange} /></Suspense></div></div><div label={<><span aria-hidden='true'>🎓</span><Localize i18n_default_text='Deriv Course' /></>} id='id-deriv-course'><DerivCourse /></div></Tabs>{!isDesktop && right_tab_shadow && <span className='tabs-shadow tabs-shadow--right' />}</div></div></div><RunStrategy /><ChartModal /><TradingViewModal /><RunPanel /><DesktopWrapper><Dialog cancel_button_text={cancel_button_text} dismissable={dismissable} is_closed_on_cancel={is_closed_on_cancel} is_visible={is_dialog_open} message={message} ok_button_text={ok_button_text} onCancel={onCancelButtonClick} onClose={onCloseDialog} onOk={onOkButtonClick} title={title} /></DesktopWrapper><MobileWrapper><Dialog cancel_button_text={cancel_button_text} dismissable={dismissable} is_closed_on_cancel={is_closed_on_cancel} is_visible={is_dialog_open} message={message} onCancel={onCancelButtonClick} onClose={onCloseDialog} onOk={onOkButtonClick} title={title} /></MobileWrapper><TradeTypeConfirmationModal {...getTradeTypeModalProps()} /></React.Fragment>;
+    return <React.Fragment><div className='main'><div className={classNames('main__container', { 'main__container--active': active_tour && active_tab === DASHBOARD && !isDesktop })}><div>{!isDesktop && left_tab_shadow && <span className='tabs-shadow tabs-shadow--left' />}<Tabs active_index={active_tab} className='main__tabs' onTabItemClick={handleTabChange} top><div label={<><span aria-hidden='true'>🏠</span><Localize i18n_default_text='Dashboard' /></>} id='id-dbot-dashboard'><Dashboard handleTabChange={handleTabChange} /></div><div label={<><span aria-hidden='true'>🧩</span><Localize i18n_default_text='Bot Builder' /></>} id='id-bot-builder'><MartingaleParameter /></div><div label={<><span aria-hidden='true'>🧠</span><Localize i18n_default_text='Signal AI' /></>} id='id-signal-ai'><SignalAI /></div><div label={<><span aria-hidden='true'>🤖</span><Localize i18n_default_text='Free Bots' /></>} id='id-free-bots'><FreeBots /></div><div label={<><span aria-hidden='true'>📊</span><Localize i18n_default_text='Charts' /></>} id={is_chart_modal_visible || is_trading_view_modal_visible ? 'id-charts--disabled' : 'id-charts'}><Suspense fallback={<ChunkLoader message={localize('Please wait, loading chart...')} />}><ChartWrapper show_digits_stats={false} /></Suspense></div><div label={<><span aria-hidden='true'>📚</span><Localize i18n_default_text='Tutorials' /></>} id='id-tutorials'><div className='tutorials-wrapper'><Suspense fallback={<ChunkLoader message={localize('Please wait, loading tutorials...')} />}><Tutorial handleTabChange={handleTabChange} /></Suspense></div></div><div label={<><span aria-hidden='true'>🎓</span><Localize i18n_default_text='Deriv Course' /></>} id='id-deriv-course'><DerivCourse /></div></Tabs>{!isDesktop && right_tab_shadow && <span className='tabs-shadow tabs-shadow--right' />}</div></div></div><RunStrategy /><ChartModal /><TradingViewModal /><RunPanel /><DesktopWrapper><Dialog cancel_button_text={cancel_button_text} dismissable={dismissable} is_closed_on_cancel={is_closed_on_cancel} is_visible={is_dialog_open} message={message} ok_button_text={ok_button_text} onCancel={onCancelButtonClick} onClose={onCloseDialog} onOk={onOkButtonClick} title={title} /></DesktopWrapper><MobileWrapper><Dialog cancel_button_text={cancel_button_text} dismissable={dismissable} is_closed_on_cancel={is_closed_on_cancel} is_visible={is_dialog_open} message={message} onCancel={onCancelButtonClick} onClose={onCloseDialog} onOk={onOkButtonClick} title={title} /></MobileWrapper><TradeTypeConfirmationModal {...getTradeTypeModalProps()} /></React.Fragment>;
 });
 export default AppWrapper;
