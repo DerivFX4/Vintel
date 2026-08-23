@@ -1,0 +1,48 @@
+.acc-info {
+    &__balance-section {
+        gap: 0.8rem;
+    }
+
+    &__account-icon {
+        align-items: center;
+        display: inline-flex;
+        flex: 0 0 auto;
+        height: 3.2rem;
+        justify-content: center;
+        width: 3.2rem;
+    }
+
+    &__account-icon-svg {
+        display: block;
+        height: 3.2rem;
+        width: 3.2rem;
+    }
+
+    &__balance {
+        color: #198a31 !important;
+        font-size: 1.6rem !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+    }
+
+    &__balance--no-currency {
+        color: var(--text-less-prominent) !important;
+        font-weight: normal !important;
+    }
+
+    &__select-arrow {
+        margin-left: 0.4rem;
+    }
+
+    @media (max-width: 600px) {
+        &__balance {
+            font-size: 1.5rem !important;
+        }
+    }
+}
+
+.acc-dropdown__balance {
+    color: #198a31 !important;
+    font-weight: 800 !important;
+}
