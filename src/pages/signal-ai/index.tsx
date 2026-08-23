@@ -10,141 +10,51 @@ type DerivMessage = { msg_type?: string; req_id?: number; error?: { message?: st
 const HISTORY_COUNT = 200;
 const DERIV_PUBLIC_ENDPOINT = 'wss://api.derivws.com/trading/v1/options/ws/public';
 const MARKETS: Market[] = [
-    { symbol: '1HZ10V', display_name: 'Volatility 10 (1s) Index' },
-    { symbol: '1HZ25V', display_name: 'Volatility 25 (1s) Index' },
-    { symbol: '1HZ50V', display_name: 'Volatility 50 (1s) Index' },
-    { symbol: '1HZ75V', display_name: 'Volatility 75 (1s) Index' },
-    { symbol: '1HZ100V', display_name: 'Volatility 100 (1s) Index' },
-    { symbol: 'R_10', display_name: 'Volatility 10 Index' },
-    { symbol: 'R_25', display_name: 'Volatility 25 Index' },
-    { symbol: 'R_50', display_name: 'Volatility 50 Index' },
-    { symbol: 'R_75', display_name: 'Volatility 75 Index' },
-    { symbol: 'R_100', display_name: 'Volatility 100 Index' },
+    { symbol: '1HZ10V', display_name: 'Volatility 10 (1s) Index' }, { symbol: '1HZ25V', display_name: 'Volatility 25 (1s) Index' },
+    { symbol: '1HZ50V', display_name: 'Volatility 50 (1s) Index' }, { symbol: '1HZ75V', display_name: 'Volatility 75 (1s) Index' },
+    { symbol: '1HZ100V', display_name: 'Volatility 100 (1s) Index' }, { symbol: 'R_10', display_name: 'Volatility 10 Index' },
+    { symbol: 'R_25', display_name: 'Volatility 25 Index' }, { symbol: 'R_50', display_name: 'Volatility 50 Index' },
+    { symbol: 'R_75', display_name: 'Volatility 75 Index' }, { symbol: 'R_100', display_name: 'Volatility 100 Index' },
 ];
-
-const getLastDigit = (price: number | string) => {
-    const text = String(price);
-    const decimal = text.includes('.') ? text.split('.')[1] : '';
-    return Number((decimal || '0').slice(-1));
-};
+const getLastDigit = (price: number | string) => { const text = String(price); const decimal = text.includes('.') ? text.split('.')[1] : ''; return Number((decimal || '0').slice(-1)); };
 
 const SignalAI = () => {
-    const [scan_type, setScanType] = useState<ScanType>('even_odd');
-    const [barrier, setBarrier] = useState(4);
-    const [results, setResults] = useState<ScanResult[]>([]);
-    const [status, setStatus] = useState('Ready to scan live market ticks.');
-    const [is_scanning, setIsScanning] = useState(false);
-    const [is_loading_run, setIsLoadingRun] = useState(false);
-    const ws_ref = useRef<WebSocket | null>(null);
-    const market_ticks_ref = useRef<Record<string, number[]>>({});
+    const [scan_type, setScanType] = useState<ScanType>('even_odd'); const [barrier, setBarrier] = useState(4);
+    const [results, setResults] = useState<ScanResult[]>([]); const [status, setStatus] = useState('Ready to scan live market ticks.');
+    const [is_scanning, setIsScanning] = useState(false); const [is_loading_run, setIsLoadingRun] = useState(false);
+    const [stake, setStake] = useState('0.5'); const [wins, setWins] = useState('4'); const [stop_loss, setStopLoss] = useState('50'); const [martingale, setMartingale] = useState('2');
+    const ws_ref = useRef<WebSocket | null>(null); const market_ticks_ref = useRef<Record<string, number[]>>({});
     const strongest = useMemo(() => results[0], [results]);
-
     useEffect(() => () => { try { ws_ref.current?.close(); } catch (_) {} }, []);
-
     const buildResults = (ticksByMarket: Record<string, number[]>) => MARKETS.map(market => {
-        const prices = (ticksByMarket[market.symbol] || []).slice(-HISTORY_COUNT);
-        const digits = prices.map(getLastDigit).filter(d => Number.isInteger(d) && d >= 0 && d <= 9);
-        if (!digits.length) return null;
-        const even = digits.filter(d => d % 2 === 0).length;
-        const under = digits.filter(d => d <= barrier).length;
-        const preferred = scan_type === 'over_under' ? Math.max(under, digits.length - under) : Math.max(even, digits.length - even);
-        const signal = scan_type === 'over_under'
-            ? (under >= digits.length - under ? `UNDER ${barrier + 1}` : `OVER ${barrier}`)
-            : (even >= digits.length - even ? 'EVEN' : 'ODD');
+        const prices = (ticksByMarket[market.symbol] || []).slice(-HISTORY_COUNT); const digits = prices.map(getLastDigit).filter(d => Number.isInteger(d) && d >= 0 && d <= 9); if (!digits.length) return null;
+        const even = digits.filter(d => d % 2 === 0).length; const under = digits.filter(d => d <= barrier).length; const preferred = scan_type === 'over_under' ? Math.max(under, digits.length - under) : Math.max(even, digits.length - even);
+        const signal = scan_type === 'over_under' ? (under >= digits.length - under ? `UNDER ${barrier + 1}` : `OVER ${barrier}`) : (even >= digits.length - even ? 'EVEN' : 'ODD');
         return { market: market.symbol, display_name: market.display_name, signal, confidence: Number(((preferred / digits.length) * 100).toFixed(1)), sample: digits.length, last_digit: digits[digits.length - 1] } satisfies ScanResult;
     }).filter((r): r is ScanResult => Boolean(r)).sort((a, b) => b.confidence - a.confidence);
-
     const handleLoadAndRun = () => {
-        if (!strongest || is_loading_run) return;
-        setIsLoadingRun(true);
-        window.dispatchEvent(new CustomEvent('vintelfx-load-and-run-signal-bot', {
-            detail: {
-                result: strongest,
-                config: { stake: 0.5, stop_loss: 50, wins: 4, martingale: 2 },
-            },
-        }));
-        setStatus(`Loading ${strongest.signal} into the existing Bot Builder with $0.50 stake, $50 stop loss, 4-win limit and 2× martingale…`);
-        window.setTimeout(() => setIsLoadingRun(false), 3000);
+        if (!strongest || is_loading_run) return; const config = { stake: Math.max(0, Number(stake) || 0), stop_loss: Math.max(0, Number(stop_loss) || 0), wins: Math.max(1, Number(wins) || 1), martingale: Math.max(1, Number(martingale) || 1) };
+        setIsLoadingRun(true); window.dispatchEvent(new CustomEvent('vintelfx-load-and-run-signal-bot', { detail: { result: strongest, config } }));
+        setStatus(`Loading ${strongest.signal} with $${config.stake.toFixed(2)} stake, $${config.stop_loss} stop loss, ${config.wins}-win limit and ${config.martingale}× martingale…`); window.setTimeout(() => setIsLoadingRun(false), 3000);
     };
-
     const handleScan = () => {
-        if (is_scanning) return;
-        try { ws_ref.current?.close(); } catch (_) {}
-        setIsScanning(true);
-        setResults([]);
-        market_ticks_ref.current = {};
-        setStatus('Connecting to Deriv public live market data…');
-        const ws = new WebSocket(DERIV_PUBLIC_ENDPOINT);
-        ws_ref.current = ws;
-        let received_history = 0;
-        let settled = false;
-        let next_request_id = 1;
-        const request_market = new Map<number, Market>();
-        const fail = (message: string) => {
-            if (settled) return;
-            settled = true;
-            setIsScanning(false);
-            setStatus(`Could not retrieve the live Deriv market analysis. Please try again. (${message})`);
-            try { ws.close(); } catch (_) {}
+        if (is_scanning) return; try { ws_ref.current?.close(); } catch (_) {} setIsScanning(true); setResults([]); market_ticks_ref.current = {}; setStatus('Connecting to Deriv public live market data…');
+        const ws = new WebSocket(DERIV_PUBLIC_ENDPOINT); ws_ref.current = ws; let received_history = 0; let settled = false; let next_request_id = 1; const request_market = new Map<number, Market>();
+        const fail = (message: string) => { if (settled) return; settled = true; setIsScanning(false); setStatus(`Could not retrieve the live Deriv market analysis. Please try again. (${message})`); try { ws.close(); } catch (_) {} };
+        const finish = () => { if (settled) return; settled = true; setResults(buildResults(market_ticks_ref.current)); setStatus(`LIVE · ${MARKETS.length} Volatility markets analysed from ${HISTORY_COUNT} recent ticks. Showing only the strongest signal.`); setIsScanning(false); };
+        ws.onopen = () => { setStatus('Connected to Deriv. Loading recent live ticks…'); MARKETS.forEach(market => { const req_id = next_request_id++; request_market.set(req_id, market); ws.send(JSON.stringify({ ticks_history: market.symbol, count: HISTORY_COUNT, end: 'latest', style: 'ticks', subscribe: 1, req_id })); }); };
+        ws.onmessage = event => { let data: DerivMessage; try { data = JSON.parse(event.data) as DerivMessage; } catch (_) { return; } if (data.error) return fail(data.error.message || 'Deriv rejected the market-data request');
+            if (data.msg_type === 'history' && data.req_id) { const market = request_market.get(data.req_id); if (!market) return; request_market.delete(data.req_id); market_ticks_ref.current[market.symbol] = (data.history?.prices || []).map(Number).filter(Number.isFinite).slice(-HISTORY_COUNT); received_history++; if (received_history === MARKETS.length) finish(); else setStatus(`LIVE · Loading market history ${received_history}/${MARKETS.length}…`); return; }
+            if (data.msg_type === 'tick' && data.tick?.symbol && data.tick.quote !== undefined) { const symbol = data.tick.symbol; const quote = Number(data.tick.quote); if (!Number.isFinite(quote) || !MARKETS.some(m => m.symbol === symbol)) return; const current = market_ticks_ref.current[symbol] || []; market_ticks_ref.current[symbol] = [...current, quote].slice(-HISTORY_COUNT); setResults(buildResults(market_ticks_ref.current)); setStatus(`LIVE · Strongest signal updated from the latest Deriv tick · ${new Date().toLocaleTimeString()}`); }
         };
-        const finish = () => {
-            if (settled) return;
-            settled = true;
-            const initial = buildResults(market_ticks_ref.current);
-            setResults(initial);
-            setStatus(`LIVE · ${MARKETS.length} Volatility markets analysed from ${HISTORY_COUNT} recent ticks. Showing only the strongest signal. Streaming new ticks…`);
-            setIsScanning(false);
-        };
-        ws.onopen = () => {
-            setStatus('Connected to Deriv. Loading recent live ticks…');
-            MARKETS.forEach(market => {
-                const req_id = next_request_id++;
-                request_market.set(req_id, market);
-                ws.send(JSON.stringify({ ticks_history: market.symbol, count: HISTORY_COUNT, end: 'latest', style: 'ticks', subscribe: 1, req_id }));
-            });
-        };
-        ws.onmessage = event => {
-            let data: DerivMessage;
-            try { data = JSON.parse(event.data) as DerivMessage; } catch (_) { return; }
-            if (data.error) return fail(data.error.message || 'Deriv rejected the market-data request');
-            if (data.msg_type === 'history' && data.req_id) {
-                const market = request_market.get(data.req_id);
-                if (!market) return;
-                request_market.delete(data.req_id);
-                market_ticks_ref.current[market.symbol] = (data.history?.prices || []).map(Number).filter(Number.isFinite).slice(-HISTORY_COUNT);
-                received_history++;
-                if (received_history === MARKETS.length) finish();
-                else setStatus(`LIVE · Loading market history ${received_history}/${MARKETS.length}…`);
-                return;
-            }
-            if (data.msg_type === 'tick' && data.tick?.symbol && data.tick.quote !== undefined) {
-                const symbol = data.tick.symbol;
-                const quote = Number(data.tick.quote);
-                if (!Number.isFinite(quote) || !MARKETS.some(m => m.symbol === symbol)) return;
-                const current = market_ticks_ref.current[symbol] || [];
-                market_ticks_ref.current[symbol] = [...current, quote].slice(-HISTORY_COUNT);
-                setResults(buildResults(market_ticks_ref.current));
-                setStatus(`LIVE · Strongest signal updated from the latest Deriv tick · ${new Date().toLocaleTimeString()}`);
-            }
-        };
-        ws.onerror = () => fail('Live Deriv WebSocket connection failed');
-        ws.onclose = () => { if (!settled) fail('Live Deriv WebSocket closed unexpectedly'); };
-        window.setTimeout(() => { if (!settled) fail('Live market connection timed out'); }, 30000);
+        ws.onerror = () => fail('Live Deriv WebSocket connection failed'); ws.onclose = () => { if (!settled) fail('Live Deriv WebSocket closed unexpectedly'); }; window.setTimeout(() => { if (!settled) fail('Live market connection timed out'); }, 30000);
     };
-
+    const input = (label: string, value: string, setter: (v: string) => void, step: string, min: string) => <label className='signal-ai__param'><span>{label}</span><input type='number' value={value} min={min} step={step} onChange={e => setter(e.target.value)} disabled={!strongest || is_scanning || is_loading_run} /></label>;
     return <section className='signal-ai' aria-label='Signal AI'>
-        <div className='signal-ai__controls'>
-            <label><span>Signal type</span><select value={scan_type} disabled={is_scanning} onChange={e => setScanType(e.target.value as ScanType)}><option value='even_odd'>Odd / Even</option><option value='over_under'>Over / Under</option></select></label>
-            {scan_type === 'over_under' && <label><span>Digit barrier</span><select value={barrier} disabled={is_scanning} onChange={e => setBarrier(Number(e.target.value))}><option value={4}>Under 5 / Over 4</option><option value={5}>Under 6 / Over 5</option><option value={6}>Under 7 / Over 6</option></select></label>}
-            <button type='button' className='signal-ai__scan-button' onClick={handleScan} disabled={is_scanning}>{is_scanning ? 'Scanning live…' : '🔎 Scan live markets'}</button>
-        </div>
+        <div className='signal-ai__controls'><label><span>Signal type</span><select value={scan_type} disabled={is_scanning} onChange={e => setScanType(e.target.value as ScanType)}><option value='even_odd'>Odd / Even</option><option value='over_under'>Over / Under</option></select></label>{scan_type === 'over_under' && <label><span>Digit barrier</span><select value={barrier} disabled={is_scanning} onChange={e => setBarrier(Number(e.target.value))}><option value={4}>Under 5 / Over 4</option><option value={5}>Under 6 / Over 5</option><option value={6}>Under 7 / Over 6</option></select></label>}<button type='button' className='signal-ai__scan-button' onClick={handleScan} disabled={is_scanning}>{is_scanning ? 'Scanning live…' : '🔎 Scan live markets'}</button></div>
         <div className='signal-ai__status' role='status'>{is_scanning && <span className='signal-ai__spinner' />} {status}</div>
-        {strongest && <div className='signal-ai__best'>
-            <div><span className='signal-ai__eyebrow'>STRONGEST CURRENT SIGNAL</span><h2>{strongest.display_name}</h2><p>{strongest.signal} · {strongest.confidence}% confidence · latest digit {strongest.last_digit}</p><div className='signal-ai__config'><span>Stake <b>$0.50</b></span><span>Stop loss <b>$50</b></span><span>Wins <b>4</b></span><span>Martingale <b>2×</b></span></div></div>
-            <div className='signal-ai__best-action'><strong>{strongest.confidence}%</strong><button type='button' className='signal-ai__load-run' onClick={handleLoadAndRun} disabled={is_loading_run}>{is_loading_run ? 'Loading…' : '🍏 Load and run'}</button></div>
-        </div>}
+        {strongest && <div className='signal-ai__best'><div><span className='signal-ai__eyebrow'>STRONGEST CURRENT SIGNAL</span><h2>{strongest.display_name}</h2><p>{strongest.signal} · {strongest.confidence}% confidence · latest digit {strongest.last_digit}</p><div className='signal-ai__config'>{input('Stake', stake, setStake, '0.01', '0')} {input('No. of Wins', wins, setWins, '1', '1')} {input('Stop Loss', stop_loss, setStopLoss, '0.01', '0')} {input('Martingale', martingale, setMartingale, '0.01', '1')}</div></div><div className='signal-ai__best-action'><strong>{strongest.confidence}%</strong><button type='button' className='signal-ai__load-run' onClick={handleLoadAndRun} disabled={is_loading_run}>{is_loading_run ? 'Loading…' : '🍏 Load and run'}</button></div></div>}
         <p className='signal-ai__warning'>⚠️ Signal AI analyses recent live ticks statistically. A confidence percentage is not a prediction or guarantee that the next contract will win.</p>
     </section>;
 };
-
 export default SignalAI;
