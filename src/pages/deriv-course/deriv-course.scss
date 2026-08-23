@@ -1,0 +1,36 @@
+@use 'components/shared/styles/mixins' as *;
+
+.deriv-course {
+    width: 100%;
+    min-height: 100%;
+    padding: 2rem;
+    box-sizing: border-box;
+
+    &__hero { display: flex; align-items: center; gap: 1.4rem; margin-bottom: 1.4rem; }
+    &__hero-icon { font-size: 4rem; line-height: 1; }
+    &__hero h1 { margin: 0; font-size: 2.4rem; }
+    &__hero p { margin: 0.5rem 0 0; color: var(--text-less-prominent); }
+    &__notice { display: flex; gap: 1rem; align-items: flex-start; padding: 1.2rem; margin-bottom: 1.6rem; border: 1px solid var(--border-normal); border-radius: 0.8rem; }
+    &__notice p { margin: 0; }
+    &__layout { display: grid; grid-template-columns: minmax(20rem, 28rem) minmax(0, 1fr); gap: 1.6rem; }
+    &__lessons { display: flex; flex-direction: column; gap: 0.5rem; max-height: 65vh; overflow-y: auto; }
+    &__lesson { width: 100%; display: flex; gap: 0.8rem; align-items: center; text-align: left; padding: 1rem 1.2rem; background: var(--general-section-1); color: var(--text-prominent); border: 1px solid var(--border-normal); border-radius: 0.6rem; cursor: pointer; }
+    &__lesson--active { font-weight: 700; border-color: var(--brand-red-coral); }
+    &__content { min-height: 32rem; padding: 2.4rem; background: var(--general-section-1); border: 1px solid var(--border-normal); border-radius: 0.8rem; }
+    &__content-icon { font-size: 3.6rem; margin-bottom: 1rem; }
+    &__content h2 { margin: 0 0 1rem; }
+    &__content > p { font-size: 1.6rem; line-height: 1.6; }
+    &__key-point { display: flex; gap: 1rem; padding: 1.2rem; margin-top: 2rem; border-radius: 0.6rem; background: var(--general-hover); }
+    &__key-point p { margin: 0.4rem 0 0; line-height: 1.5; }
+    &__actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 2.4rem; }
+    &__actions button { padding: 0.8rem 1.4rem; border: 0; border-radius: 0.4rem; cursor: pointer; background: var(--button-primary-default); color: var(--text-colored-background); }
+    &__actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    @include mobile-or-tablet-screen {
+        padding: 1.2rem;
+        &__hero h1 { font-size: 2rem; }
+        &__layout { grid-template-columns: 1fr; }
+        &__lessons { max-height: 24rem; }
+        &__content { padding: 1.6rem; }
+    }
+}
