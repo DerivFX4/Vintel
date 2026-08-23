@@ -1,0 +1,30 @@
+/* Shared VintelFX tab branding. Applies to current and future tabs in .main__tabs. */
+.main__tabs {
+    .dc-tabs__list {
+        background-color: #000080 !important;
+    }
+
+    .dc-tabs__item {
+        background-color: #000080 !important;
+        color: #ffffff !important;
+
+        &, span {
+            color: #ffffff !important;
+        }
+
+        svg {
+            color: inherit !important;
+            fill: currentColor !important;
+        }
+
+        &.dc-tabs__active,
+        &--active {
+            background-color: #87ceeb !important;
+            color: #ffffff !important;
+        }
+    }
+
+    .dc-tabs__active-line {
+        background-color: #ff0000 !important;
+    }
+}
