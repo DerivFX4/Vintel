@@ -109,7 +109,7 @@
 
         &--is-scrollable-and-active {
             position: relative;
-            background: #87ceeb;
+            background: #800000;
             color: #fff;
 
             &:after {
@@ -136,17 +136,13 @@
     &__active {
         font-weight: 700;
         color: #fff;
-        background: #87ceeb;
+        background: #800000;
     }
 
     &__active-line {
         display: block;
         position: absolute;
-
-        /* rtl:begin:ignore */
         left: 0;
-
-        /* rtl:end:ignore */
         height: 2px;
         background: #ff0000;
         transition: all ease-in-out 0.3s;
