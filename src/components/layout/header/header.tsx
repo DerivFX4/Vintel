@@ -7,7 +7,6 @@ import useActiveAccount from '@/hooks/api/account/useActiveAccount';
 import { useApiBase } from '@/hooks/useApiBase';
 import { useLogout } from '@/hooks/useLogout';
 import { useStore } from '@/hooks/useStore';
-import { navigateToTransfer } from '@/utils/transfer-utils';
 import { Localize } from '@deriv-com/translations';
 import { Header, useDevice, Wrapper } from '@deriv-com/ui';
 import { AppLogo } from '../app-logo';
@@ -18,7 +17,7 @@ import './header.scss';
 
 const AppHeader = observer(() => {
     const { isDesktop } = useDevice();
-    const { isAuthorizing, activeLoginid, setIsAuthorizing, authData } = useApiBase();
+    const { isAuthorizing, activeLoginid, setIsAuthorizing } = useApiBase();
     const { client } = useStore() ?? {};
     const [authTimeout, setAuthTimeout] = useState(false);
     const is_account_regenerating = client?.is_account_regenerating || false;
@@ -49,7 +48,6 @@ const AppHeader = observer(() => {
             return;
         }
 
-        // Safety net: give up after 30 s and let the normal flow decide
         const timer = setTimeout(() => setIsOAuthPending(false), 30_000);
         return () => clearTimeout(timer);
     }, [isOAuthPending, activeLoginid]);
@@ -101,14 +99,10 @@ const AppHeader = observer(() => {
 
     const handleLogin = useCallback(async () => {
         try {
-            // Set authorizing state immediately when login is clicked
             setIsAuthorizing(true);
-
-            // Generate OAuth URL with CSRF token and PKCE parameters
             const oauthUrl = await generateOAuthURL();
 
             if (oauthUrl) {
-                // Redirect to OAuth URL
                 window.location.replace(oauthUrl);
             } else {
                 console.error('Failed to generate OAuth URL');
@@ -116,36 +110,15 @@ const AppHeader = observer(() => {
             }
         } catch (error) {
             console.error('Login redirection failed:', error);
-            // Reset authorizing state if redirection fails
             setIsAuthorizing(false);
         }
     }, [setIsAuthorizing]);
 
-    const handleTransfer = useCallback(() => {
-        const transferCurrency = authData?.currency;
-        if (!transferCurrency) {
-            console.error('No currency available for transfer');
-            return;
-        }
-        navigateToTransfer(transferCurrency);
-    }, [authData?.currency]);
-
     const renderAccountSection = useCallback(
         (position: 'left' | 'right' = 'right') => {
-            // Show account switcher and logout when user is fully authenticated
             if (activeLoginid && !is_account_regenerating) {
                 if (position === 'left') {
-                    return (
-                        <div className='auth-actions'>
-                            <Button
-                                primary
-                                disabled={client?.is_logging_out || !authData?.currency}
-                                onClick={handleTransfer}
-                            >
-                                <Localize i18n_default_text='Transfer' />
-                            </Button>
-                        </div>
-                    );
+                    return <div className='vintelfx-brand-name'>VintelFX</div>;
                 } else if (position === 'right') {
                     return (
                         <div className='auth-actions'>
@@ -208,10 +181,8 @@ const AppHeader = observer(() => {
             authTimeout,
             is_account_regenerating,
             isOAuthPending,
-            authData,
             handleLogin,
             handleSignup,
-            handleTransfer,
         ]
     );
 
