@@ -51,8 +51,6 @@ window.Blockly.Blocks.purchase = {
         const purchase_type = purchase_type_list.getValue();
         const contract_type_options = getContractTypeOptions(contract_type, trade_type);
 
-        // Vintel extension: when Contract Type is Both, allow one valid purchase
-        // block to submit both configured contracts as a pair.
         if (contract_type === 'both' && contract_type_options.length > 1) {
             contract_type_options.unshift([localize('Both'), 'both']);
         }
@@ -73,8 +71,26 @@ window.Blockly.Blocks.purchase = {
 
 window.Blockly.JavaScript.javascriptGenerator.forBlock.purchase = block => {
     const purchaseList = block.getFieldValue('PURCHASE_LIST');
+
     if (purchaseList === 'both') {
-        return "Bot.purchase('RUNHIGH');\nBot.purchase('RUNLOW');\n";
+        const trade_definition_block = block.workspace?.getTradeDefinitionBlock();
+        const trade_type_block = trade_definition_block?.getChildByType('trade_definition_tradetype');
+        const contract_type_block = trade_definition_block?.getChildByType('trade_definition_contracttype');
+        const trade_type = trade_type_block?.getFieldValue('TRADETYPE_LIST');
+        const contract_type = contract_type_block?.getFieldValue('TYPE_LIST');
+        const opposites = window.Blockly?.derivWorkspace?.opposites;
+
+        if (trade_type && contract_type === 'both' && opposites?.[trade_type.toUpperCase()]) {
+            const pair = opposites[trade_type.toUpperCase()]
+                .map(opposite => Object.keys(opposite)[0])
+                .filter(Boolean);
+            if (pair.length === 2) {
+                return `Bot.purchase(${JSON.stringify(pair)});\n`;
+            }
+        }
+
+        return "Bot.purchase(['RUNHIGH', 'RUNLOW']);\n";
     }
+
     return `Bot.purchase('${purchaseList}');\n`;
 };
