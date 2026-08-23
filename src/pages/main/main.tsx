@@ -23,6 +23,7 @@ import { useDevice } from '@deriv-com/ui';
 import RunPanel from '../../components/run-panel';
 import ChartModal from '../chart/chart-modal';
 import Dashboard from '../dashboard';
+import DerivCourse from '../deriv-course';
 import RunStrategy from '../dashboard/run-strategy';
 import SignalAI from '../signal-ai';
 import './main.scss';
@@ -186,7 +187,7 @@ const AppWrapper = observer(() => {
                 <div label={<><span aria-hidden='true'>🧠</span><Localize i18n_default_text='Signal AI' /></>} id='id-signal-ai'><SignalAI /></div>
                 <div label={<><span aria-hidden='true'>📊</span><Localize i18n_default_text='Charts' /></>} id={is_chart_modal_visible || is_trading_view_modal_visible ? 'id-charts--disabled' : 'id-charts'}><Suspense fallback={<ChunkLoader message={localize('Please wait, loading chart...')} />}><ChartWrapper show_digits_stats={false} /></Suspense></div>
                 <div label={<><span aria-hidden='true'>📚</span><Localize i18n_default_text='Tutorials' /></>} id='id-tutorials'><div className='tutorials-wrapper'><Suspense fallback={<ChunkLoader message={localize('Please wait, loading tutorials...')} />}><Tutorial handleTabChange={handleTabChange} /></Suspense></div></div>
-                <div label={<><span aria-hidden='true'>🎓</span><Localize i18n_default_text='Deriv Course' /></>} id='id-deriv-course' />
+                <div label={<><span aria-hidden='true'>🎓</span><Localize i18n_default_text='Deriv Course' /></>} id='id-deriv-course'><DerivCourse /></div>
             </Tabs>
             {!isDesktop && right_tab_shadow && <span className='tabs-shadow tabs-shadow--right' />}
         </div></div></div>
