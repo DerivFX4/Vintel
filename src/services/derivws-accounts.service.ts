@@ -49,14 +49,19 @@ export class DerivWSAccountsService {
     }
 
     static storeAccounts(accounts: DerivAccount[]): void {
-        sessionStorage.setItem('deriv_accounts', JSON.stringify(accounts));
+        localStorage.setItem('deriv_accounts', JSON.stringify(accounts));
+        sessionStorage.removeItem('deriv_accounts');
     }
 
     static getStoredAccounts(): DerivAccount[] | null {
         try {
-            const accountsStr = sessionStorage.getItem('deriv_accounts');
+            const accountsStr = localStorage.getItem('deriv_accounts') || sessionStorage.getItem('deriv_accounts');
             if (!accountsStr) return null;
-            return JSON.parse(accountsStr) as DerivAccount[];
+            const accounts = JSON.parse(accountsStr) as DerivAccount[];
+            if (!localStorage.getItem('deriv_accounts')) {
+                localStorage.setItem('deriv_accounts', accountsStr);
+            }
+            return accounts;
         } catch (error) {
             console.error('[DerivWS] Error parsing stored accounts:', error);
             return null;
@@ -70,6 +75,7 @@ export class DerivWSAccountsService {
     }
 
     static clearStoredAccounts(): void {
+        localStorage.removeItem('deriv_accounts');
         sessionStorage.removeItem('deriv_accounts');
     }
 
