@@ -92,7 +92,7 @@ const SignalAI = () => {
             settled = true;
             const initial = buildResults(market_ticks_ref.current);
             setResults(initial);
-            setStatus(`LIVE · ${initial.length} Volatility markets analysed from ${HISTORY_COUNT} recent ticks. Streaming new ticks…`);
+            setStatus(`LIVE · ${MARKETS.length} Volatility markets analysed from ${HISTORY_COUNT} recent ticks. Showing only the strongest signal. Streaming new ticks…`);
             setIsScanning(false);
         };
         ws.onopen = () => {
@@ -124,7 +124,7 @@ const SignalAI = () => {
                 const current = market_ticks_ref.current[symbol] || [];
                 market_ticks_ref.current[symbol] = [...current, quote].slice(-HISTORY_COUNT);
                 setResults(buildResults(market_ticks_ref.current));
-                setStatus(`LIVE · Signal updated from the latest Deriv tick · ${new Date().toLocaleTimeString()}`);
+                setStatus(`LIVE · Strongest signal updated from the latest Deriv tick · ${new Date().toLocaleTimeString()}`);
             }
         };
         ws.onerror = () => fail('Live Deriv WebSocket connection failed');
@@ -143,7 +143,6 @@ const SignalAI = () => {
             <div><span className='signal-ai__eyebrow'>STRONGEST CURRENT SIGNAL</span><h2>{strongest.display_name}</h2><p>{strongest.signal} · {strongest.confidence}% confidence · latest digit {strongest.last_digit}</p><div className='signal-ai__config'><span>Stake <b>$0.50</b></span><span>Stop loss <b>$50</b></span><span>Wins <b>4</b></span><span>Martingale <b>2×</b></span></div></div>
             <div className='signal-ai__best-action'><strong>{strongest.confidence}%</strong><button type='button' className='signal-ai__load-run' onClick={handleLoadAndRun} disabled={is_loading_run}>{is_loading_run ? 'Loading…' : '🍏 Load and run'}</button></div>
         </div>}
-        {!!results.length && <div className='signal-ai__results'>{results.map((result, index) => <article key={result.market} className='signal-ai__result'><span className='signal-ai__rank'>#{index + 1}</span><div><strong>{result.display_name}</strong><small>{result.sample} recent live ticks · latest digit {result.last_digit}</small></div><b>{result.signal} · {result.confidence}%</b></article>)}</div>}
         <p className='signal-ai__warning'>⚠️ Signal AI analyses recent live ticks statistically. A confidence percentage is not a prediction or guarantee that the next contract will win.</p>
     </section>;
 };
