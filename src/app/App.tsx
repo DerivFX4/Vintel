@@ -64,11 +64,25 @@ const router = createBrowserRouter(
  * Responsibilities:
  * 1. OAuth callback handling (via useOAuthCallback hook)
  * 2. Account switching from URL (via useAccountSwitching hook)
- * 3. Router provider setup
- *
- * All complex logic has been extracted into custom hooks for better maintainability
+ * 3. A minimum 8-second branded startup screen, followed by a smooth fade
+ * 4. Router provider setup
  */
 function App() {
+    const [showStartupLoader, setShowStartupLoader] = React.useState(true);
+    const [isStartupFading, setIsStartupFading] = React.useState(false);
+
+    // Keep the general VintelFX splash visible for the full 8 seconds instead of
+    // letting Suspense remove it immediately when the first chunks finish loading.
+    React.useEffect(() => {
+        const startTimer = window.setTimeout(() => setIsStartupFading(true), 8000);
+        const removeTimer = window.setTimeout(() => setShowStartupLoader(false), 8650);
+
+        return () => {
+            window.clearTimeout(startTimer);
+            window.clearTimeout(removeTimer);
+        };
+    }, []);
+
     // Handle OAuth callback flow (CSRF validation + code extraction)
     const { isProcessing, isValid, params, error, cleanupURL } = useOAuthCallback();
 
@@ -100,7 +114,12 @@ function App() {
         }
     }, [isProcessing, isValid, params.code, error, cleanupURL]);
 
-    return <RouterProvider router={router} />;
+    return (
+        <>
+            <RouterProvider router={router} />
+            {showStartupLoader && <ChunkLoader isExiting={isStartupFading} />}
+        </>
+    );
 }
 
 export default App;
