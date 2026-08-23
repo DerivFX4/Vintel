@@ -1,42 +1,26 @@
-.free-bots-page {
-    width: 100%;
-    min-height: 100%;
-    padding: 16px;
-    box-sizing: border-box;
-    background: var(--general-main-1, #f5f6f7);
-}
-
-.free-bots-page__header {
-    margin: 0 0 14px;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 14px;
-}
-
+.free-bots-page { width: 100%; min-height: 100%; padding: 16px; box-sizing: border-box; background: var(--general-main-1, #f5f6f7); }
+.free-bots-page__header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 0 18px; }
 .free-bots-page__header h2 { margin: 0 0 6px; color: var(--text-general, #263238); font-size: 24px; }
 .free-bots-page__header p { margin: 0; color: var(--text-less-prominent, #667085); line-height: 1.45; }
 .free-bots-page__file-input { display: none; }
-.free-bots-page__upload-button { flex: 0 0 auto; padding: 11px 16px; border: 1px solid #203c76; border-radius: 8px; background: #203c76; color: #fff; font-size: 14px; font-weight: 400; cursor: pointer; }
-
-.free-bots-page__list { display: flex; flex-direction: column; gap: 12px; }
-.free-bot-card { position: relative; min-height: 190px; padding: 22px 28px 24px; overflow: hidden; border: 2px solid #e5a11b; border-radius: 18px; background: linear-gradient(105deg, #fffdf7 0%, #fff8e5 58%, #fff0bf 100%); box-sizing: border-box; box-shadow: 0 8px 24px rgba(31, 47, 80, 0.08); }
-.free-bot-card h3 { margin: 0 0 16px; padding-right: 100px; color: #353b45; font-size: 20px; font-weight: 800; }
-.free-bot-card p { max-width: 88%; margin: 0 0 26px; color: #68717f; font-size: 16px; line-height: 1.55; }
-.free-bot-card button { display: block; min-width: 110px; margin-left: auto; padding: 11px 20px; border: 0; border-radius: 10px; background: #203c76; color: #fff; font-size: 15px; font-weight: 400; cursor: pointer; }
-.free-bot-card button:disabled { opacity: 0.65; cursor: wait; }
-.free-bot-card__badge { position: absolute; top: 0; right: 0; width: 120px; padding: 8px 0; color: #fff; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-align: center; transform: translate(31px, 22px) rotate(45deg); }
-.free-bot-card__badge--new { background: #159a79; }
-.free-bot-card__badge--updated { background: #7254d6; }
-.free-bots-page__error { margin-bottom: 12px; padding: 10px 12px; border: 1px solid #dc4c64; border-radius: 8px; background: #fff0f2; color: #a61b31; }
-.free-bots-page__empty { padding: 24px; border: 1px dashed #cbd2dc; border-radius: 12px; background: #fff; color: #667085; text-align: center; }
-
-@media (max-width: 520px) {
-    .free-bots-page { padding: 10px; }
-    .free-bots-page__header { flex-direction: column; }
-    .free-bots-page__header h2 { font-size: 21px; }
-    .free-bots-page__upload-button { width: 100%; }
-    .free-bot-card { min-height: 210px; padding: 20px 24px 22px; }
-    .free-bot-card h3 { font-size: 18px; }
-    .free-bot-card p { max-width: 100%; font-size: 15px; }
-}
+.free-bots-page__upload-button { flex: 0 0 auto; padding: 11px 16px; border: 1px solid #d9a441; border-radius: 8px; background: #fff; color: #263238; font-size: 14px; font-weight: 400; cursor: pointer; }
+.free-bots-page__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.free-bot-card { display: flex; flex-direction: column; min-height: 230px; overflow: hidden; border: 1px solid #e3e6eb; border-radius: 12px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+.free-bot-card__top { display: flex; align-items: center; gap: 12px; padding: 18px 18px 14px; border-bottom: 1px solid #eef0f3; }
+.free-bot-card__icon { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: #eef3fb; font-size: 23px; }
+.free-bot-card__identity { min-width: 0; flex: 1; }
+.free-bot-card h3 { margin: 0 0 4px; color: #29313d; font-size: 16px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.free-bot-card__status { color: #788392; font-size: 12px; }
+.free-bot-card__badge { padding: 4px 8px; border-radius: 999px; background: #e8f7ee; color: #177a42; font-size: 11px; font-weight: 500; }
+.free-bot-card__badge--updated { background: #f1edff; color: #6248b8; }
+.free-bot-card__body { flex: 1; padding: 16px 18px; }
+.free-bot-card__body p { min-height: 44px; margin: 0 0 14px; color: #667085; font-size: 14px; line-height: 1.5; }
+.free-bot-card__meta { display: flex; flex-wrap: wrap; gap: 8px; }
+.free-bot-card__meta span { padding: 5px 8px; border-radius: 5px; background: #f5f7fa; color: #6b7280; font-size: 11px; }
+.free-bot-card__footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 18px; border-top: 1px solid #eef0f3; }
+.free-bot-card__hint { color: #8b95a3; font-size: 11px; }
+.free-bot-card button { min-width: 88px; padding: 9px 16px; border: 1px solid #233d74; border-radius: 6px; background: #233d74; color: #fff; font-size: 14px; font-weight: 400; cursor: pointer; }
+.free-bot-card button:disabled { opacity: .65; cursor: wait; }
+.free-bots-page__empty, .free-bots-page__error { padding: 16px; border: 1px solid #e3e6eb; border-radius: 10px; background: #fff; color: #667085; }
+.free-bots-page__error { border-color: #dc4c64; background: #fff0f2; color: #a61b31; }
+@media (max-width: 600px) { .free-bots-page { padding: 10px; } .free-bots-page__header { align-items: stretch; flex-direction: column; } .free-bots-page__upload-button { width: 100%; } .free-bots-page__list { grid-template-columns: 1fr; } }
