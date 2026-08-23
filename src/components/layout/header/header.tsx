@@ -22,10 +22,6 @@ const AppHeader = observer(() => {
     const [authTimeout, setAuthTimeout] = useState(false);
     const is_account_regenerating = client?.is_account_regenerating || false;
 
-    // Detect OAuth callback on mount (before App.tsx cleans up the URL).
-    // When ?code=...&state=... is present the full auth flow can take 7-15 s
-    // (token exchange → accounts fetch → OTP → WebSocket auth), so we must
-    // suppress the short fallback timeout and keep the spinner throughout.
     const [isOAuthPending, setIsOAuthPending] = useState(() => {
         const params = new URLSearchParams(window.location.search);
         return Boolean(params.get('code') && params.get('state'));
@@ -38,8 +34,6 @@ const AppHeader = observer(() => {
 
     const handleLogout = useLogout();
 
-    // Clear OAuth-pending flag once the account is set (auth succeeded)
-    // or after a generous timeout in case something goes wrong.
     useEffect(() => {
         if (!isOAuthPending) return;
 
@@ -52,17 +46,12 @@ const AppHeader = observer(() => {
         return () => clearTimeout(timer);
     }, [isOAuthPending, activeLoginid]);
 
-    // Handle direct URL access with legacy token param
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const account_id = urlParams.get('account_id');
-        if (account_id) {
-            setIsAuthorizing(true);
-        }
+        if (account_id) setIsAuthorizing(true);
     }, [setIsAuthorizing]);
 
-    // Fallback timeout: show login button if auth never resolves.
-    // Suppressed during the OAuth callback flow (isOAuthPending = true).
     useEffect(() => {
         if (isOAuthPending) return;
 
@@ -85,9 +74,8 @@ const AppHeader = observer(() => {
         try {
             setIsAuthorizing(true);
             const oauthUrl = await generateOAuthURL('registration');
-            if (oauthUrl) {
-                window.location.replace(oauthUrl);
-            } else {
+            if (oauthUrl) window.location.replace(oauthUrl);
+            else {
                 console.error('Failed to generate OAuth URL for signup');
                 setIsAuthorizing(false);
             }
@@ -101,10 +89,8 @@ const AppHeader = observer(() => {
         try {
             setIsAuthorizing(true);
             const oauthUrl = await generateOAuthURL();
-
-            if (oauthUrl) {
-                window.location.replace(oauthUrl);
-            } else {
+            if (oauthUrl) window.location.replace(oauthUrl);
+            else {
                 console.error('Failed to generate OAuth URL');
                 setIsAuthorizing(false);
             }
@@ -118,8 +104,14 @@ const AppHeader = observer(() => {
         (position: 'left' | 'right' = 'right') => {
             if (activeLoginid && !is_account_regenerating) {
                 if (position === 'left') {
-                    return <div className='vintelfx-brand-name'>VintelFX</div>;
-                } else if (position === 'right') {
+                    return (
+                        <div className='vintelfx-brand-name' aria-label='VintelFX'>
+                            <span className='vintelfx-brand-name__vintel'>Vintel</span>
+                            <span className='vintelfx-brand-name__fx'>FX</span>
+                        </div>
+                    );
+                }
+                if (position === 'right') {
                     return (
                         <div className='auth-actions'>
                             <div className='account-info'>
@@ -128,9 +120,7 @@ const AppHeader = observer(() => {
                         </div>
                     );
                 }
-            }
-            // Show login button only when fully settled (not during OAuth flow)
-            else if (
+            } else if (
                 position === 'right' &&
                 !isOAuthPending &&
                 ((!is_account_regenerating && !isAuthorizing && !activeLoginid) || authTimeout)
@@ -145,66 +135,32 @@ const AppHeader = observer(() => {
                         </Button>
                     </div>
                 );
-            }
-            // Default: Show spinner during loading states or when authorizing
-            else if (position === 'right') {
+            } else if (position === 'right') {
                 return (
                     <div className='auth-actions auth-actions--loading'>
-                        <svg
-                            className='auth-actions__spinner'
-                            viewBox='0 0 24 24'
-                            fill='none'
-                            xmlns='http://www.w3.org/2000/svg'
-                        >
-                            <circle
-                                cx='12'
-                                cy='12'
-                                r='10'
-                                stroke='currentColor'
-                                strokeWidth='2.5'
-                                strokeLinecap='round'
-                                strokeDasharray='31.416'
-                                strokeDashoffset='10'
-                            />
+                        <svg className='auth-actions__spinner' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                            <circle cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' strokeDasharray='31.416' strokeDashoffset='10' />
                         </svg>
                     </div>
                 );
             }
-
             return null;
         },
-        [
-            isAuthorizing,
-            activeLoginid,
-            client,
-            activeAccount,
-            authTimeout,
-            is_account_regenerating,
-            isOAuthPending,
-            handleLogin,
-            handleSignup,
-        ]
+        [isAuthorizing, activeLoginid, client, activeAccount, authTimeout, is_account_regenerating, isOAuthPending, handleLogin, handleSignup]
     );
 
     if (client?.should_hide_header) return null;
 
     return (
-        <>
-            <Header
-                className={clsx('app-header', {
-                    'app-header--desktop': isDesktop,
-                    'app-header--mobile': !isDesktop,
-                })}
-            >
-                <Wrapper variant='left'>
-                    <MobileMenu onLogout={handleLogout} />
-                    <AppLogo />
-                    {activeLoginid && !is_account_regenerating && !isDesktop ? renderAccountSection('left') : null}
-                    {isDesktop ? <MenuItems /> : null}
-                </Wrapper>
-                <Wrapper variant='right'>{renderAccountSection('right')}</Wrapper>
-            </Header>
-        </>
+        <Header className={clsx('app-header', { 'app-header--desktop': isDesktop, 'app-header--mobile': !isDesktop })}>
+            <Wrapper variant='left'>
+                <MobileMenu onLogout={handleLogout} />
+                <AppLogo />
+                {activeLoginid && !is_account_regenerating && !isDesktop ? renderAccountSection('left') : null}
+                {isDesktop ? <MenuItems /> : null}
+            </Wrapper>
+            <Wrapper variant='right'>{renderAccountSection('right')}</Wrapper>
+        </Header>
     );
 });
 
