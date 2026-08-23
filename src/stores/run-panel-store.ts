@@ -402,24 +402,26 @@ export default class RunPanelStore {
         this.is_dialog_open = true;
     };
 
-    showClearStatDialog = () => {
-        this.onOkButtonClick = () => {
-            this.clearStat();
-            this.onCloseDialog();
-        };
-        this.onCancelButtonClick = this.onCloseDialog;
-        this.dialog_options = {
-            title: localize('Are you sure?'),
-            message: localize(
-                'This will clear all data in the summary, transactions, and journal panels. All counters will be reset to zero.'
-            ),
-    ok_button_text: localize('Yes, reset'),
-    cancel_button_text: localize('Cancel'),
-    dismissable: true,
-    is_closed_on_cancel: true,
- };
-        this.is_dialog_open = true;
+showClearStatDialog = () => {
+    this.onOkButtonClick = this.onCloseDialog;
+
+    this.onCancelButtonClick = () => {
+        this.clearStat();
+        this.onCloseDialog();
     };
+
+    this.dialog_options = {
+        title: localize('Are you sure?'),
+        message: localize(
+            'This will clear all data in the summary, transactions, and journal panels. All counters will be reset to zero.'
+        ),
+        cancel_button_text: localize('Yes, reset'),
+        is_closed_on_cancel: false,
+        dismissable: false,
+    };
+
+    this.is_dialog_open = true;
+};
 
     showIncompatibleStrategyDialog = () => {
         this.onOkButtonClick = this.onCloseDialog;
