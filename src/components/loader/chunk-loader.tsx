@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import './chunk-loader.scss';
+import './chunk-loader-fix.scss';
 
 export default function ChunkLoader({ message: _message }: { message?: string }) {
     const [progress, setProgress] = useState(0);
