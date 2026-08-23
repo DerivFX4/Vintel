@@ -13,10 +13,20 @@ import AccountInfoWrapper from './account-info-wrapper';
 import './account-switcher.scss';
 import './account-balance-visuals.scss';
 
+// Matches the reference Demo-account mark: a soft teal circle with a clear,
+// centered white outlined D. It is kept as a vector so it remains sharp on
+// Android screens at different pixel densities.
 const DemoAccountIcon = () => (
     <svg className='acc-info__account-icon-svg' viewBox='0 0 48 48' aria-hidden='true'>
-        <circle cx='24' cy='24' r='24' fill='#76969d' />
-        <path d='M13 8h13.2c7.5 0 12.8 5.1 12.8 12.5 0 4.5-2.2 8-6 10.1 3.9 2 6 5.6 6 10.2 0 7.2-5.3 12.2-12.8 12.2H13v-7h12.6c3.8 0 6.1-2.1 6.1-5.5 0-3.6-2.4-5.8-6.3-5.8H13v-7h12.2c3.9 0 6.3-2.3 6.3-6.1 0-3.7-2.4-6-6.3-6H20v30.4h-7V8Z' fill='#fff' />
+        <circle cx='24' cy='24' r='23' fill='#7799a0' />
+        <path
+            d='M16 12v24M16 12h8.2c6.6 0 11.8 5.2 11.8 12s-5.2 12-11.8 12H16M16 24h10.4'
+            fill='none'
+            stroke='#fff'
+            strokeLinecap='round'
+            strokeLinejoin='round'
+            strokeWidth='4.2'
+        />
     </svg>
 );
 
