@@ -12,6 +12,7 @@ import { OAuthTokenExchangeService } from '@/services/oauth-token-exchange.servi
 import { initializeI18n, localize, TranslationProvider } from '@deriv-com/translations';
 import CoreStoreProvider from './CoreStoreProvider';
 import './app-root.scss';
+import './vintelfx-tabs.scss';
 
 const Layout = lazy(() => import('../components/layout'));
 const AppRoot = lazy(() => import('./app-root'));
@@ -69,9 +70,6 @@ function App() {
 
     useAccountSwitching();
 
-    // Rehydrate an existing Deriv session on normal page loads. This runs after
-    // a refresh and restores the authenticated account without sending the user
-    // through OAuth again. OAuth callback pages are handled separately below.
     React.useEffect(() => {
         if (!isProcessing && !params.code && !error && OAuthTokenExchangeService.isAuthenticated()) {
             OAuthTokenExchangeService.restoreSession().catch(restoreError => {
