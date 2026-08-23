@@ -9,10 +9,15 @@
 .signal-ai__scan-button { cursor: pointer; }
 .signal-ai__status, .signal-ai__warning, .signal-ai__best, .signal-ai__result { border: 1px solid var(--border-normal); border-radius: .8rem; padding: 1rem; }
 .signal-ai__status { margin-bottom: 1rem; }
-.signal-ai__best { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.signal-ai__best { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
 .signal-ai__best h2 { margin: .4rem 0; }
-.signal-ai__best > strong { font-size: 2rem; }
+.signal-ai__best-action { display: flex; flex-direction: column; align-items: flex-end; gap: .8rem; }
+.signal-ai__best > strong, .signal-ai__best-action > strong { font-size: 2rem; }
 .signal-ai__eyebrow { font-size: .8rem; font-weight: 700; }
+.signal-ai__config { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: .8rem; }
+.signal-ai__config span { padding: .45rem .65rem; border-radius: .45rem; background: var(--general-section-1); font-size: .85rem; }
+.signal-ai__load-run { border: 0; border-radius: .55rem; padding: .75rem 1rem; background: #fff; color: #111; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgb(0 0 0 / 18%); }
+.signal-ai__load-run:disabled { opacity: .6; cursor: wait; }
 .signal-ai__results { display: flex; flex-direction: column; gap: .7rem; }
 .signal-ai__result { display: grid; grid-template-columns: auto 1fr auto auto; gap: 1rem; align-items: center; }
 .signal-ai__result small { display: block; margin-top: .3rem; }
@@ -21,4 +26,4 @@
 .signal-ai__warning p { margin: 0; }
 .signal-ai__spinner { display: inline-block; width: .9rem; height: .9rem; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: signal-ai-spin .7s linear infinite; }
 @keyframes signal-ai-spin { to { transform: rotate(360deg); } }
-@media (max-width: 600px) { .signal-ai { padding: 1rem; } .signal-ai__result { grid-template-columns: auto 1fr; } .signal-ai__signal, .signal-ai__result b { grid-column: 2; } }
+@media (max-width: 600px) { .signal-ai { padding: 1rem; } .signal-ai__best { align-items: stretch; flex-direction: column; } .signal-ai__best-action { align-items: stretch; } .signal-ai__result { grid-template-columns: auto 1fr; } .signal-ai__signal, .signal-ai__result b { grid-column: 2; } }
