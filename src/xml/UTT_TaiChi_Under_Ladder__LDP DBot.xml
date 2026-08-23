@@ -1,0 +1,120 @@
+<xml xmlns="https://developers.google.com/blockly/xml" is_dbot="true" collection="false">
+  <variables>
+    <variable id="var22">r2x</variable>
+    <variable id="var23">r4x</variable>
+    <variable id="var24">q</variable>
+    <variable id="var01">Stake</variable>
+    <variable id="var56">RunCount</variable>
+    <variable id="var12">GatePass</variable>
+    <variable id="var25">zq</variable>
+    <variable id="var02">Duration (ticks)</variable>
+    <variable id="var10">FrozenDigit</variable>
+    <variable id="var20">LivePayout</variable>
+    <variable id="var13">ConsWin</variable>
+    <variable id="var26">zt</variable>
+    <variable id="ov01">Barrier</variable>
+    <variable id="var03">Mode (0=Differs 1=Matches)</variable>
+    <variable id="var11">WaitCount</variable>
+    <variable id="var21">LiveAsk</variable>
+    <variable id="var14">ChiStat</variable>
+    <variable id="ov05">TotalN</variable>
+    <variable id="var04">Sample Size</variable>
+    <variable id="var55">LossStreak</variable>
+    <variable id="var40">LD</variable>
+    <variable id="ov04">OverWin</variable>
+    <variable id="var05">Chi Alpha</variable>
+    <variable id="var16">Breakeven</variable>
+    <variable id="var45">Len</variable>
+    <variable id="var06">Credible</variable>
+    <variable id="var50">Base Stake</variable>
+    <variable id="ov03">CumLoss</variable>
+    <variable id="var57">Halted</variable>
+    <variable id="var54">Max Runs</variable>
+    <variable id="var17">Needed</variable>
+    <variable id="var19">W</variable>
+    <variable id="ov06">k</variable>
+    <variable id="var07">Prior Strength</variable>
+    <variable id="var51">Win Step (add)</variable>
+    <variable id="var53">Max Consecutive Losses</variable>
+    <variable id="ov02">PayoutFactor</variable>
+    <variable id="var08">Margin</variable>
+    <variable id="ov09">RNext</variable>
+    <variable id="var27">Window</variable>
+    <variable id="var29">Counts</variable>
+    <variable id="ov07">Use Chi Gate</variable>
+    <variable id="var09">Min Samples</variable>
+    <variable id="ov08">Gate Relax</variable>
+    <variable id="var28">d</variable>
+    <variable id="var46">Take Profit</variable>
+    <variable id="var31">Expected</variable>
+    <variable id="var47">Stop Loss</variable>
+    <variable id="var30">i</variable>
+    <variable id="var32">Dev</variable>
+    <variable id="var41">ZAlpha</variable>
+    <variable id="var15">ChiCrit</variable>
+    <variable id="var34">ZCred</variable>
+    <variable id="var39">TotalPseudo</variable>
+    <variable id="var37">BestScore</variable>
+    <variable id="var18">BestDigit</variable>
+    <variable id="var38">A</variable>
+    <variable id="var42">FA</variable>
+    <variable id="var33">M</variable>
+    <variable id="var43">FM</variable>
+    <variable id="var35">SD</variable>
+    <variable id="var44">FSD</variable>
+    <variable id="var52">Loss Multiplier</variable>
+    <variable id="var36">Score</variable>
+    <variable id="ug01">UTT Brand</variable>
+    <variable id="ug02">UTT Channel</variable>
+    <variable id="ug03">UTT Site</variable>
+    <variable id="ug04">UTT Guard</variable>
+    <variable id="ug05">UTT Seal</variable>
+    <variable id="ld01">LDP Ticks</variable>
+    <variable id="ld02">LDP Max Percent</variable>
+    <variable id="ld03">LDP</variable>
+    <variable id="ld04">LDP Count</variable>
+    <variable id="ld05">LDP N</variable>
+    <variable id="ld06">LDP Pass</variable>
+    <variable id="ld07">LDP Window</variable>
+    <variable id="ld08">LDP Digit</variable>
+    <variable id="ld09">LDP List</variable>
+    <variable id="ld10">LDP Prev</variable>
+  </variables>
+  <block type="trade_definition" id="cb0001" deletable="false" x="0" y="60">
+    <statement name="TRADE_OPTIONS">
+      <block type="trade_definition_market" id="cb0002" deletable="false" movable="false">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" vh_enabled="false" vh_max_steps="1" vh_min_trades="1" vh_stake="0.35"></mutation>
+        <field name="MARKET_LIST">synthetic_index</field>
+        <field name="SUBMARKET_LIST">random_index</field>
+        <field name="SYMBOL_LIST">R_10</field>
+        <field name="ALTERNATE_MARKETS">TRUE</field>
+        <field name="ALTERNATE_EVERY">1</field>
+        <field name="MULTI_MARKET">FALSE</field>
+        <field name="VH_ENABLED">FALSE</field>
+        <field name="VH_SETTINGS_BTN">⚙️ Virtual Hook Settings</field>
+        <next>
+          <block type="trade_definition_tradetype" id="cb0003" deletable="false" movable="false">
+            <field name="TRADETYPECAT_LIST">digits</field>
+            <field name="TRADETYPE_LIST">under</field>
+          </block>
+        </next>
+      </block>
+    </statement>
+    <statement name="SUBMARKET">
+      <block type="procedures_callnoreturn" id="cb0063">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" name="UTT Guarded Analysis"></mutation>
+        <next>
+          <block type="variables_set" id="cb0072">
+            <field name="VAR" id="var10">FrozenDigit</field>
+            <value name="VALUE"><block type="variables_get" id="ovg0013"><field name="VAR" id="ov01">Barrier</field></block></value>
+          </block>
+        </next>
+      </block>
+    </statement>
+    <statement name="INITIALIZATION">
+      <block type="variables_set" id="utt7012"><field name="VAR" id="ld01">LDP Ticks</field><value name="VALUE"><block type="math_number" id="utt7001"><field name="NUM">500</field></block></value><next><block type="variables_set" id="utt7011"><field name="VAR" id="ld02">LDP Max Percent</field><value name="VALUE"><block type="math_number" id="utt7002"><field name="NUM">10</field></block></value><next><block type="variables_set" id="utt7010"><field name="VAR" id="ld06">LDP Pass</field><value name="VALUE"><block type="math_number" id="utt7003"><field name="NUM">0</field></block></value><next><block type="variables_set" id="utt7009"><field name="VAR" id="ld10">LDP Prev</field><value name="VALUE"><block type="math_number" id="utt7004"><field name="NUM">0</field></block></value><next><block type="variables_set" id="utt7008"><field name="VAR" id="ld03">LDP</field><value name="VALUE"><block type="math_number" id="utt7005"><field name="NUM">0</field></block></value><next><block type="notify" id="utt7006"><field name="NOTIFICATION_TYPE">info</field><field name="NOTIFICATION_SOUND">silent</field><value name="MESSAGE"><block type="text" id="utt7007"><field name="TEXT">[UTT] Digit frequency filter: last 500 ticks, barrier digit must be under 10%</field></block></value><next><block type="variables_set" id="utt0014"><field name="VAR" id="ug01">UTT Brand</field><value name="VALUE"><block type="text" id="utt0001"><field name="TEXT">UTT ULTIMATE TRADING TOOLS</field></block></value><next><block type="variables_set" id="utt0013"><field name="VAR" id="ug02">UTT Channel</field><value name="VALUE"><block type="text" id="utt0002"><field name="TEXT">t.me/binaryboss101</field></block></value><next><block type="variables_set" id="utt0012"><field name="VAR" id="ug03">UTT Site</field><value name="VALUE"><block type="text" id="utt0003"><field name="TEXT">dbot.ultimatedigits.ai</field></block></value></block></next></block></next></block></next></block></next></block></next></block>
+    </statement>
+  </block>
+  <block type="procedures_defnoreturn" id="utt0033" x="0" y="6000"><mutation xmlns="http://www.w3.org/1999/xhtml"></mutation><field name="NAME">UTT Guarded Analysis</field><statement name="STACK"><block type="variables_set" id="utt0032"><field name="VAR" id="ug04">UTT Guard</field><value name="VALUE"><block type="math_arithmetic" id="utt0022"><field name="OP">ADD</field><value name="A"><block type="text_length" id="utt0016"><value name="VALUE"><block type="variables_get" id="utt0015"><field name="VAR" id="ug01">UTT Brand</field></block></value></block></value><value name="B"><block type="math_arithmetic" id="utt0021"><field name="OP">ADD</field><value name="A"><block type="text_length" id="utt0018"><value name="VALUE"><block type="variables_get" id="utt0017"><field name="VAR" id="ug02">UTT Channel</field></block></value></block></value><value name="B"><block type="text_length" id="utt0020"><value name="VALUE"><block type="variables_get" id="utt0019"><field name="VAR" id="ug03">UTT Site</field></block></value></block></value></block></value></block></value></block></value><next><block type="procedures_callnoreturn" id="utt0030"><mutation xmlns="http://www.w3.org/1999/xhtml" name="UTT Over Analysis"></mutation><next><block type="procedures_callnoreturn" id="utt7091"><mutation xmlns="http://www.w3.org/1999/xhtml" name="UTT Digit Frequency"></mutation></block></next></block></next></block></statement></block>
+  <block type="procedures_defnoreturn" id="utt7090" x="0" y="6600"><mutation xmlns="http://www.w3.org/1999/xhtml"></mutation><field name="NAME">UTT Digit Frequency</field><statement name="STACK"><block type="variables_set" id="utt7089"><field name="VAR" id="ld09">LDP List</field><value name="VALUE"><block type="lastDigitList" id="utt7063"></block></value><next><block type="notify" id="utt7092"><field name="NOTIFICATION_TYPE">info</field><field name="NOTIFICATION_SOUND">silent</field><value name="MESSAGE"><block type="text"><field name="TEXT">[UTT] Digit frequency analysis initialized.</field></block></value></block></next></block></statement></block>
+</xml>
