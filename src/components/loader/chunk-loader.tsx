@@ -2,22 +2,29 @@ import { useEffect, useState } from 'react';
 import './chunk-loader.scss';
 import './chunk-loader-fix.scss';
 
+const MINIMUM_LOADER_DURATION = 8000;
+
 export default function ChunkLoader({ message: _message }: { message?: string }) {
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
-        const duration = 7200;
-        const startedAt = Date.now();
-        let timer = 0;
+        const startedAt = performance.now();
+        let frame = 0;
 
-        const update = () => {
-            const next = Math.min(100, Math.floor(((Date.now() - startedAt) / duration) * 100));
-            setProgress(next);
-            if (next < 100) timer = window.setTimeout(update, 72);
+        const update = (now: number) => {
+            const elapsed = Math.min(now - startedAt, MINIMUM_LOADER_DURATION);
+            const ratio = elapsed / MINIMUM_LOADER_DURATION;
+            // Ease-out progress keeps the animation smooth and avoids a fast chunk-loading feel.
+            const eased = 1 - Math.pow(1 - ratio, 2);
+            setProgress(Math.min(100, Math.round(eased * 100)));
+
+            if (elapsed < MINIMUM_LOADER_DURATION) {
+                frame = window.requestAnimationFrame(update);
+            }
         };
 
-        update();
-        return () => window.clearTimeout(timer);
+        frame = window.requestAnimationFrame(update);
+        return () => window.cancelAnimationFrame(frame);
     }, []);
 
     return (
@@ -39,7 +46,10 @@ export default function ChunkLoader({ message: _message }: { message?: string })
                         aria-valuemax={100}
                         aria-valuenow={progress}
                     >
-                        <div className='vintelfx-chunk-loader__progress-fill' />
+                        <div
+                            className='vintelfx-chunk-loader__progress-fill'
+                            style={{ transform: `scaleX(${progress / 100})` }}
+                        />
                     </div>
                     <div className='vintelfx-chunk-loader__percent'>{progress}%</div>
                 </div>
