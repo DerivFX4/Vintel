@@ -16,25 +16,8 @@ import { CONNECTION_STATUS } from '@/external/bot-skeleton/services/api/observab
 import { isDbotRTL } from '@/external/bot-skeleton/utils/workspace';
 import { useApiBase } from '@/hooks/useApiBase';
 import { useStore } from '@/hooks/useStore';
-import {
-    disableUrlParameterApplication,
-    enableUrlParameterApplication,
-    setupTradeTypeChangeListener,
-} from '@/utils/blockly-url-param-handler';
-import {
-    checkAndShowTradeTypeModal,
-    getModalState,
-    handleTradeTypeCancel,
-    handleTradeTypeConfirm,
-    resetUrlParamProcessing,
-    setModalStateChangeCallback,
-} from '@/utils/trade-type-modal-handler';
-import {
-    LabelPairedChartLineCaptionRegularIcon,
-    LabelPairedObjectsColumnCaptionRegularIcon,
-    LabelPairedPuzzlePieceTwoCaptionBoldIcon,
-} from '@deriv/quill-icons/LabelPaired';
-import { LegacyGuide1pxIcon } from '@deriv/quill-icons/Legacy';
+import { disableUrlParameterApplication, enableUrlParameterApplication, setupTradeTypeChangeListener } from '@/utils/blockly-url-param-handler';
+import { checkAndShowTradeTypeModal, getModalState, handleTradeTypeCancel, handleTradeTypeConfirm, resetUrlParamProcessing, setModalStateChangeCallback } from '@/utils/trade-type-modal-handler';
 import { Localize, localize } from '@deriv-com/translations';
 import { useDevice } from '@deriv-com/ui';
 import RunPanel from '../../components/run-panel';
@@ -51,30 +34,11 @@ const AppWrapper = observer(() => {
     const { connectionStatus } = useApiBase();
     const { dashboard, load_modal, run_panel, quick_strategy, summary_card, blockly_store } = useStore();
     const { is_loading } = blockly_store;
-    const {
-        active_tab,
-        active_tour,
-        is_chart_modal_visible,
-        is_trading_view_modal_visible,
-        setActiveTab,
-        setWebSocketState,
-        setActiveTour,
-        setTourDialogVisibility,
-    } = dashboard;
+    const { active_tab, active_tour, is_chart_modal_visible, is_trading_view_modal_visible, setActiveTab, setWebSocketState, setActiveTour, setTourDialogVisibility } = dashboard;
     const { dashboard_strategies } = load_modal;
-    const {
-        is_dialog_open,
-        is_drawer_open,
-        dialog_options,
-        onCancelButtonClick,
-        onCloseDialog,
-        onOkButtonClick,
-        stopBot,
-    } = run_panel;
+    const { is_dialog_open, is_drawer_open, dialog_options, onCancelButtonClick, onCloseDialog, onOkButtonClick, stopBot } = run_panel;
     const { is_open } = quick_strategy;
-    const { cancel_button_text, ok_button_text, title, message, dismissable, is_closed_on_cancel } = dialog_options as {
-        [key: string]: string;
-    };
+    const { cancel_button_text, ok_button_text, title, message, dismissable, is_closed_on_cancel } = dialog_options as { [key: string]: string };
     const { clear } = summary_card;
     const { DASHBOARD, BOT_BUILDER } = DBOT_TABS;
     const init_render = React.useRef(true);
@@ -82,9 +46,8 @@ const AppWrapper = observer(() => {
     const { isDesktop } = useDevice();
     const location = useLocation();
     const navigate = useNavigate();
-    const [left_tab_shadow, setLeftTabShadow] = useState<boolean>(false);
-    const [right_tab_shadow, setRightTabShadow] = useState<boolean>(false);
-
+    const [left_tab_shadow, setLeftTabShadow] = useState(false);
+    const [right_tab_shadow, setRightTabShadow] = useState(false);
     const [tradeTypeModalState, setTradeTypeModalState] = useState(getModalState());
 
     const getTradeTypeModalProps = () => {
@@ -92,9 +55,7 @@ const AppWrapper = observer(() => {
         return {
             is_visible: tradeTypeModalState.isVisible,
             trade_type_display_name: tradeTypeData?.displayName || '',
-            current_trade_type: tradeTypeData?.currentTradeType
-                ? `${tradeTypeData.currentTradeType.tradeTypeCategory}/${tradeTypeData.currentTradeType.tradeType}`
-                : 'N/A',
+            current_trade_type: tradeTypeData?.currentTradeType ? `${tradeTypeData.currentTradeType.tradeTypeCategory}/${tradeTypeData.currentTradeType.tradeType}` : 'N/A',
             current_trade_type_display_name: tradeTypeData?.currentTradeTypeDisplayName || 'N/A',
             onConfirm: handleTradeTypeConfirm,
             onCancel: handleTradeTypeCancel,
@@ -109,10 +70,7 @@ const AppWrapper = observer(() => {
     };
     const active_hash_tab = GetHashedValue(active_tab);
 
-    React.useEffect(() => {
-        setModalStateChangeCallback(new_state => setTradeTypeModalState(new_state));
-    }, [is_loading]);
-
+    React.useEffect(() => { setModalStateChangeCallback(new_state => setTradeTypeModalState(new_state)); }, [is_loading]);
     React.useEffect(() => resetUrlParamProcessing(), [location.search]);
 
     React.useEffect(() => {
@@ -123,20 +81,14 @@ const AppWrapper = observer(() => {
         const observer_tutorial = new window.IntersectionObserver(([entry]) => setRightTabShadow(!entry.isIntersecting), { root: null, threshold: 0.5 });
         observer_dashboard.observe(el_dashboard);
         observer_tutorial.observe(el_tutorial);
-        return () => {
-            observer_dashboard.disconnect();
-            observer_tutorial.disconnect();
-        };
+        return () => { observer_dashboard.disconnect(); observer_tutorial.disconnect(); };
     });
 
     React.useEffect(() => {
         if (connectionStatus !== CONNECTION_STATUS.OPENED) {
             const is_bot_running = document.getElementById('db-animation__stop-button') !== null;
             if (is_bot_running) {
-                clear();
-                stopBot();
-                api_base.setIsRunning(false);
-                setWebSocketState(false);
+                clear(); stopBot(); api_base.setIsRunning(false); setWebSocketState(false);
             }
         }
     }, [clear, connectionStatus, setWebSocketState, stopBot]);
@@ -156,14 +108,10 @@ const AppWrapper = observer(() => {
         let pollTimeoutId: ReturnType<typeof setTimeout> | null = null;
         if (active_tab === BOT_BUILDER) {
             requestAnimationFrame(() => {
-                disableUrlParameterApplication();
-                setupTradeTypeChangeListener();
-                const handleTradeTypeModal = () => {
-                    checkAndShowTradeTypeModal(() => enableUrlParameterApplication(), () => {});
-                };
-                if (!blockly_store.is_loading) {
-                    setTimeout(handleTradeTypeModal, 500);
-                } else {
+                disableUrlParameterApplication(); setupTradeTypeChangeListener();
+                const handleTradeTypeModal = () => checkAndShowTradeTypeModal(() => enableUrlParameterApplication(), () => {});
+                if (!blockly_store.is_loading) setTimeout(handleTradeTypeModal, 500);
+                else {
                     let pollAttempts = 0;
                     const checkBlocklyLoaded = () => {
                         if (!blockly_store.is_loading) return handleTradeTypeModal();
@@ -180,10 +128,7 @@ const AppWrapper = observer(() => {
     const handleTabChange = React.useCallback((tab_index: number) => {
         setActiveTab(tab_index);
         const el_id = TAB_IDS[tab_index];
-        if (el_id) {
-            const el_tab = document.getElementById(el_id);
-            setTimeout(() => el_tab?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' }), 10);
-        }
+        if (el_id) setTimeout(() => document.getElementById(el_id)?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' }), 10);
     }, [active_tab]);
 
     React.useEffect(() => {
@@ -232,72 +177,23 @@ const AppWrapper = observer(() => {
         else console.error('Failed to generate OAuth URL');
     };
 
-    return (
-        <React.Fragment>
-            <div className='main'>
-                <div className={classNames('main__container', { 'main__container--active': active_tour && active_tab === DASHBOARD && !isDesktop })}>
-                    <div>
-                        {!isDesktop && left_tab_shadow && <span className='tabs-shadow tabs-shadow--left' />}
-                        <Tabs active_index={active_tab} className='main__tabs' onTabItemClick={handleTabChange} top>
-                            <div label={<><LabelPairedObjectsColumnCaptionRegularIcon height='24px' width='24px' fill='var(--text-general)' /><Localize i18n_default_text='Dashboard' /></>} id='id-dbot-dashboard'>
-                                <Dashboard handleTabChange={handleTabChange} />
-                            </div>
-                            <div label={<><LabelPairedPuzzlePieceTwoCaptionBoldIcon height='24px' width='24px' fill='var(--text-general)' /><Localize i18n_default_text='Bot Builder' /></>} id='id-bot-builder' />
-                            <div label={<><span aria-hidden='true'>🧠</span><Localize i18n_default_text='Signal AI' /></>} id='id-signal-ai'>
-                                <SignalAI />
-                            </div>
-                            <div label={<><LabelPairedChartLineCaptionRegularIcon height='24px' width='24px' fill='var(--text-general)' /><Localize i18n_default_text='Charts' /></>} id={is_chart_modal_visible || is_trading_view_modal_visible ? 'id-charts--disabled' : 'id-charts'}>
-                                <Suspense fallback={<ChunkLoader message={localize('Please wait, loading chart...')} />}>
-                                    <ChartWrapper show_digits_stats={false} />
-                                </Suspense>
-                            </div>
-                            <div label={<><LegacyGuide1pxIcon height='16px' width='16px' fill='var(--text-general)' className='icon-general-fill-g-path' /><Localize i18n_default_text='Tutorials' /></>} id='id-tutorials'>
-                                <div className='tutorials-wrapper'>
-                                    <Suspense fallback={<ChunkLoader message={localize('Please wait, loading tutorials...')} />}>
-                                        <Tutorial handleTabChange={handleTabChange} />
-                                    </Suspense>
-                                </div>
-                            </div>
-                        </Tabs>
-                        {!isDesktop && right_tab_shadow && <span className='tabs-shadow tabs-shadow--right' />}
-                    </div>
-                </div>
-            </div>
-            <RunStrategy />
-            <ChartModal />
-            <TradingViewModal />
-            <RunPanel />
-            <DesktopWrapper>
-                <Dialog
-                    cancel_button_text={cancel_button_text}
-                    dismissable={dismissable}
-                    is_closed_on_cancel={is_closed_on_cancel}
-                    is_visible={is_dialog_open}
-                    message={message}
-                    ok_button_text={ok_button_text}
-                    onCancel={onCancelButtonClick}
-                    onClose={onCloseDialog}
-                    onOk={onOkButtonClick}
-                    title={title}
-                />
-            </DesktopWrapper>
-            <MobileWrapper>
-                <Dialog
-                    cancel_button_text={cancel_button_text}
-                    dismissable={dismissable}
-                    is_closed_on_cancel={is_closed_on_cancel}
-                    is_visible={is_dialog_open}
-                    message={message}
-                    ok_button_text={ok_button_text}
-                    onCancel={onCancelButtonClick}
-                    onClose={onCloseDialog}
-                    onOk={onOkButtonClick}
-                    title={title}
-                />
-            </MobileWrapper>
-            <TradeTypeConfirmationModal {...getTradeTypeModalProps()} />
-        </React.Fragment>
-    );
+    return <React.Fragment>
+        <div className='main'><div className={classNames('main__container', { 'main__container--active': active_tour && active_tab === DASHBOARD && !isDesktop })}><div>
+            {!isDesktop && left_tab_shadow && <span className='tabs-shadow tabs-shadow--left' />}
+            <Tabs active_index={active_tab} className='main__tabs' onTabItemClick={handleTabChange} top>
+                <div label={<><span aria-hidden='true'>🏠</span><Localize i18n_default_text='Dashboard' /></>} id='id-dbot-dashboard'><Dashboard handleTabChange={handleTabChange} /></div>
+                <div label={<><span aria-hidden='true'>🤖</span><Localize i18n_default_text='Bot Builder' /></>} id='id-bot-builder' />
+                <div label={<><span aria-hidden='true'>🧠</span><Localize i18n_default_text='Signal AI' /></>} id='id-signal-ai'><SignalAI /></div>
+                <div label={<><span aria-hidden='true'>📊</span><Localize i18n_default_text='Charts' /></>} id={is_chart_modal_visible || is_trading_view_modal_visible ? 'id-charts--disabled' : 'id-charts'}><Suspense fallback={<ChunkLoader message={localize('Please wait, loading chart...')} />}><ChartWrapper show_digits_stats={false} /></Suspense></div>
+                <div label={<><span aria-hidden='true'>📚</span><Localize i18n_default_text='Tutorials' /></>} id='id-tutorials'><div className='tutorials-wrapper'><Suspense fallback={<ChunkLoader message={localize('Please wait, loading tutorials...')} />}><Tutorial handleTabChange={handleTabChange} /></Suspense></div></div>
+            </Tabs>
+            {!isDesktop && right_tab_shadow && <span className='tabs-shadow tabs-shadow--right' />}
+        </div></div></div>
+        <RunStrategy /><ChartModal /><TradingViewModal /><RunPanel />
+        <DesktopWrapper><Dialog cancel_button_text={cancel_button_text} dismissable={dismissable} is_closed_on_cancel={is_closed_on_cancel} is_visible={is_dialog_open} message={message} ok_button_text={ok_button_text} onCancel={onCancelButtonClick} onClose={onCloseDialog} onOk={onOkButtonClick} title={title} /></DesktopWrapper>
+        <MobileWrapper><Dialog cancel_button_text={cancel_button_text} dismissable={dismissable} is_closed_on_cancel={is_closed_on_cancel} is_visible={is_dialog_open} message={message} ok_button_text={ok_button_text} onCancel={onCancelButtonClick} onClose={onCloseDialog} onOk={onOkButtonClick} title={title} /></MobileWrapper>
+        <TradeTypeConfirmationModal {...getTradeTypeModalProps()} />
+    </React.Fragment>;
 });
 
 export default AppWrapper;
