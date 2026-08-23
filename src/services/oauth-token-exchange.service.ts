@@ -21,15 +21,23 @@ interface AuthInfo {
 }
 
 export class OAuthTokenExchangeService {
+    private static restorePromise: Promise<boolean> | null = null;
+
     static getAuthInfo(): AuthInfo | null {
         try {
-            const raw = sessionStorage.getItem('auth_info');
+            const raw = localStorage.getItem('auth_info') || sessionStorage.getItem('auth_info');
             if (!raw) return null;
+
             const info = JSON.parse(raw) as AuthInfo;
             if (info.expires_at && Date.now() >= info.expires_at) {
                 this.clearAuthInfo();
                 return null;
             }
+
+            if (!localStorage.getItem('auth_info')) {
+                localStorage.setItem('auth_info', JSON.stringify(info));
+            }
+
             return info;
         } catch {
             return null;
@@ -37,8 +45,11 @@ export class OAuthTokenExchangeService {
     }
 
     static clearAuthInfo(): void {
+        localStorage.removeItem('auth_info');
+        localStorage.removeItem('deriv_accounts');
         sessionStorage.removeItem('auth_info');
         sessionStorage.removeItem('deriv_accounts');
+        this.restorePromise = null;
     }
 
     static isAuthenticated(): boolean {
@@ -47,6 +58,46 @@ export class OAuthTokenExchangeService {
 
     static getAccessToken(): string | null {
         return this.getAuthInfo()?.access_token || null;
+    }
+
+    static async restoreSession(): Promise<boolean> {
+        if (this.restorePromise) return this.restorePromise;
+
+        this.restorePromise = (async () => {
+            const authInfo = this.getAuthInfo();
+            if (!authInfo?.access_token) return false;
+
+            try {
+                const { DerivWSAccountsService } = await import('./derivws-accounts.service');
+                let accounts = DerivWSAccountsService.getStoredAccounts();
+
+                if (!accounts?.length) {
+                    accounts = await DerivWSAccountsService.fetchAccountsList(authInfo.access_token);
+                } else {
+                    DerivWSAccountsService.fetchAccountsList(authInfo.access_token).catch(() => undefined);
+                }
+
+                if (!accounts?.length) return false;
+
+                const selectedId = localStorage.getItem('active_loginid');
+                const active = accounts.find(account => account.account_id === selectedId) || accounts[0];
+                localStorage.setItem('active_loginid', active.account_id);
+                localStorage.setItem('account_type', active.account_type);
+
+                const { api_base } = await import('@/external/bot-skeleton');
+                await api_base.init(true);
+                return true;
+            } catch (error) {
+                ErrorLogger.error('OAuth', 'OAuth session restore failed', error);
+                return false;
+            }
+        })();
+
+        try {
+            return await this.restorePromise;
+        } finally {
+            this.restorePromise = null;
+        }
     }
 
     static async exchangeCodeForToken(code: string): Promise<TokenExchangeResponse> {
@@ -60,9 +111,6 @@ export class OAuthTokenExchangeService {
         }
 
         try {
-            // The browser sends the one-time code + PKCE verifier to our
-            // serverless endpoint. The serverless endpoint performs the
-            // sensitive token exchange with Deriv using server-side config.
             const response = await fetch('/api/oauth/token', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -87,7 +135,8 @@ export class OAuthTokenExchangeService {
                 scope: data.scope,
                 refresh_token: data.refresh_token,
             };
-            sessionStorage.setItem('auth_info', JSON.stringify(authInfo));
+            localStorage.setItem('auth_info', JSON.stringify(authInfo));
+            sessionStorage.removeItem('auth_info');
 
             const { DerivWSAccountsService } = await import('./derivws-accounts.service');
             const accounts = await DerivWSAccountsService.fetchAccountsList(data.access_token);
