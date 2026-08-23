@@ -1,20 +1,25 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import './risk-disclaimer.scss';
 
 const RiskDisclaimer = () => {
     const [open, setOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
-    if (!open) {
-        return (
-            <button type='button' className='risk-disclaimer__trigger' onClick={() => setOpen(true)}>
-                ⚠️ Risk Disclaimer
-            </button>
-        );
-    }
+    useEffect(() => {
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
 
-    return (
+    if (!mounted) return null;
+
+    const content = !open ? (
+        <button type='button' className='risk-disclaimer__trigger' onClick={() => setOpen(true)}>
+            ⚠️ Risk Disclaimer
+        </button>
+    ) : (
         <div className='risk-disclaimer__panel' role='dialog' aria-label='Risk Disclaimer' onClick={() => setOpen(false)}>
-            <div className='risk-disclaimer__content' onClick={event => event.stopPropagation()}>
+            <div className='risk-disclaimer__content'>
                 <div className='risk-disclaimer__heading'>
                     <strong>⚠️ Risk Disclaimer</strong>
                     <button type='button' className='risk-disclaimer__close' aria-label='Close risk disclaimer' onClick={() => setOpen(false)}>
@@ -32,6 +37,8 @@ const RiskDisclaimer = () => {
             </div>
         </div>
     );
+
+    return createPortal(content, document.body);
 };
 
 export default RiskDisclaimer;
