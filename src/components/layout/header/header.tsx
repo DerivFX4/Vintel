@@ -36,12 +36,10 @@ const AppHeader = observer(() => {
 
     useEffect(() => {
         if (!isOAuthPending) return;
-
         if (activeLoginid) {
             setIsOAuthPending(false);
             return;
         }
-
         const timer = setTimeout(() => setIsOAuthPending(false), 30_000);
         return () => clearTimeout(timer);
     }, [isOAuthPending, activeLoginid]);
@@ -54,19 +52,16 @@ const AppHeader = observer(() => {
 
     useEffect(() => {
         if (isOAuthPending) return;
-
         const timer = setTimeout(() => {
             if (isAuthorizing && !activeLoginid) {
                 setAuthTimeout(true);
                 setIsAuthorizing(false);
             }
         }, 5000);
-
         if (activeLoginid || !isAuthorizing) {
             if (authTimeout) setAuthTimeout(false);
             clearTimeout(timer);
         }
-
         return () => clearTimeout(timer);
     }, [isAuthorizing, activeLoginid, setIsAuthorizing, authTimeout, isOAuthPending]);
 
@@ -127,10 +122,10 @@ const AppHeader = observer(() => {
             ) {
                 return (
                     <div className='auth-actions'>
-                        <Button tertiary onClick={handleLogin}>
+                        <Button tertiary className='vintelfx-auth-button vintelfx-auth-button--login' onClick={handleLogin}>
                             <Localize i18n_default_text='Log in' />
                         </Button>
-                        <Button primary_light onClick={handleSignup}>
+                        <Button primary_light className='vintelfx-auth-button vintelfx-auth-button--signup' onClick={handleSignup}>
                             <Localize i18n_default_text='Sign up' />
                         </Button>
                     </div>
