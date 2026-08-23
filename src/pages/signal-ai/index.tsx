@@ -1,4 +1,5 @@
 import React from 'react';
+import '../main/vintelfx-tabs.scss';
 
 /**
  * Signal AI is intentionally isolated from existing dashboard, Blockly,
