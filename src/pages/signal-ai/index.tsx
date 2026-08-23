@@ -3,7 +3,6 @@ import '../main/vintelfx-tabs.scss';
 import './signal-ai.scss';
 
 type ScanType = 'even_odd' | 'over_under';
-
 type Market = { symbol: string; display_name: string };
 
 type ScanResult = {
@@ -16,14 +15,20 @@ type ScanResult = {
 
 type DerivMessage = {
     msg_type?: string;
-    req_id?: number;
     error?: { message?: string };
-    active_symbols?: Array<{ symbol: string; display_name: string; market?: string; submarket?: string }>;
-    history?: { prices?: number[]; times?: number[] };
+    active_symbols?: Array<{ symbol: string; display_name: string }>;
+    history?: { prices?: number[] };
 };
 
 const HISTORY_COUNT = 200;
+// Public market data does not require an authenticated account. Keep a known public test
+// app ID as a fallback because server-only Vercel variables are not automatically exposed
+// to browser bundles.
 const APP_ID = process.env.DERIV_APP_ID || '1089';
+const DERIV_ENDPOINTS = [
+    `wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`,
+    `wss://frontend.binaryws.com/websockets/v3?l=EN&app_id=${APP_ID}`,
+];
 
 const getLastDigit = (price: number) => {
     const text = String(price);
@@ -37,7 +42,6 @@ const SignalAI = () => {
     const [results, setResults] = useState<ScanResult[]>([]);
     const [status, setStatus] = useState('Ready to scan live market ticks.');
     const [is_scanning, setIsScanning] = useState(false);
-
     const strongest = useMemo(() => results[0], [results]);
 
     const handleScan = async () => {
@@ -46,94 +50,124 @@ const SignalAI = () => {
         setResults([]);
         setStatus('Connecting to live Deriv market data…');
 
-        const ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`);
-        let request_id = 0;
-        let markets: Market[] = [];
-        let next_index = 0;
-        const scanned_results: ScanResult[] = [];
-        let timeout: number | undefined;
+        const runScan = (endpoint_index: number): Promise<ScanResult[]> => new Promise((resolve, reject) => {
+            const endpoint = DERIV_ENDPOINTS[endpoint_index];
+            const ws = new WebSocket(endpoint);
+            let request_id = 0;
+            let markets: Market[] = [];
+            let next_index = 0;
+            const scanned_results: ScanResult[] = [];
+            let settled = false;
+            const timeout = window.setTimeout(() => finish(new Error('Connection timed out')), 35000);
 
-        const finish = (message: string) => {
-            if (timeout) window.clearTimeout(timeout);
-            if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) ws.close();
-            scanned_results.sort((a, b) => b.confidence - a.confidence);
-            setResults(scanned_results);
-            setStatus(message);
-            setIsScanning(false);
-        };
+            const finish = (error?: Error) => {
+                if (settled) return;
+                settled = true;
+                window.clearTimeout(timeout);
+                if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) ws.close();
+                if (error) reject(error);
+                else resolve(scanned_results.sort((a, b) => b.confidence - a.confidence));
+            };
 
-        const requestNextMarket = () => {
-            if (next_index >= markets.length) {
-                finish(scanned_results.length ? `Live scan complete: ${scanned_results.length} markets analysed from recent ticks.` : 'No live Volatility tick history was returned. Please try again.');
-                return;
-            }
-            const market = markets[next_index++];
-            setStatus(`Scanning ${next_index} of ${markets.length}: ${market.display_name}…`);
-            request_id += 1;
-            ws.send(JSON.stringify({ ticks_history: market.symbol, count: HISTORY_COUNT, end: 'latest', style: 'ticks', req_id: request_id }));
-        };
-
-        timeout = window.setTimeout(() => finish('Live scan timed out before market data was returned. Please try again.'), 30000);
-
-        ws.onopen = () => {
-            request_id = 1;
-            ws.send(JSON.stringify({ active_symbols: 'brief', product_type: 'basic', req_id: request_id }));
-        };
-
-        ws.onerror = () => finish('Could not connect to the live Deriv market feed. Please try again.');
-
-        ws.onmessage = event => {
-            let data: DerivMessage;
-            try {
-                data = JSON.parse(event.data) as DerivMessage;
-            } catch {
-                finish('Live market data returned an unreadable response. Please try again.');
-                return;
-            }
-
-            if (data.error) {
-                if (data.msg_type === 'active_symbols') finish(data.error.message || 'Could not retrieve the available live markets.');
-                else requestNextMarket();
-                return;
-            }
-
-            if (data.msg_type === 'active_symbols') {
-                const available = data.active_symbols || [];
-                markets = available
-                    .filter(item => /Volatility/i.test(item.display_name) && /Index/i.test(item.display_name))
-                    .map(item => ({ symbol: item.symbol, display_name: item.display_name }));
-                if (!markets.length) {
-                    finish('No supported Volatility markets were returned by the live feed.');
+            const requestNextMarket = () => {
+                if (next_index >= markets.length) {
+                    finish();
                     return;
                 }
-                setStatus(`Found ${markets.length} live Volatility markets. Starting analysis…`);
-                requestNextMarket();
-                return;
-            }
+                const market = markets[next_index++];
+                setStatus(`Scanning ${next_index} of ${markets.length}: ${market.display_name}…`);
+                request_id += 1;
+                ws.send(JSON.stringify({ ticks_history: market.symbol, count: HISTORY_COUNT, end: 'latest', style: 'ticks', req_id: request_id }));
+            };
 
-            if (data.msg_type === 'history') {
-                const prices = data.history?.prices || [];
-                const digits = prices.map(getLastDigit).filter(digit => Number.isInteger(digit) && digit >= 0 && digit <= 9);
-                const market = markets[next_index - 1];
-                if (market && digits.length) {
-                    let signal: string;
-                    let confidence: number;
-                    if (scan_type === 'even_odd') {
-                        const even = digits.filter(digit => digit % 2 === 0).length;
-                        const odd = digits.length - even;
-                        signal = even >= odd ? 'EVEN' : 'ODD';
-                        confidence = (Math.max(even, odd) / digits.length) * 100;
-                    } else {
-                        const under = digits.filter(digit => digit < barrier + 1).length;
-                        const over = digits.length - under;
-                        signal = under >= over ? `UNDER ${barrier + 1}` : `OVER ${barrier}`;
-                        confidence = (Math.max(under, over) / digits.length) * 100;
-                    }
-                    scanned_results.push({ market: market.symbol, display_name: market.display_name, signal, confidence: Number(confidence.toFixed(1)), sample: digits.length });
+            ws.onopen = () => {
+                request_id = 1;
+                setStatus('Connected. Loading live Volatility markets…');
+                ws.send(JSON.stringify({ active_symbols: 'brief', product_type: 'basic', req_id: request_id }));
+            };
+
+            ws.onerror = () => finish(new Error('WebSocket connection failed'));
+
+            ws.onmessage = event => {
+                if (settled) return;
+                let data: DerivMessage;
+                try {
+                    data = JSON.parse(event.data) as DerivMessage;
+                } catch {
+                    finish(new Error('Unreadable live response'));
+                    return;
                 }
-                requestNextMarket();
+
+                if (data.error) {
+                    // A symbol can disappear temporarily; continue scanning the rest.
+                    if (data.msg_type === 'history') {
+                        requestNextMarket();
+                        return;
+                    }
+                    finish(new Error(data.error.message || 'Deriv rejected the live request'));
+                    return;
+                }
+
+                if (data.msg_type === 'active_symbols') {
+                    markets = (data.active_symbols || [])
+                        .filter(item => /Volatility/i.test(item.display_name) && /Index/i.test(item.display_name))
+                        .map(item => ({ symbol: item.symbol, display_name: item.display_name }));
+                    if (!markets.length) {
+                        finish(new Error('No Volatility markets were returned'));
+                        return;
+                    }
+                    setStatus(`Found ${markets.length} live Volatility markets. Starting analysis…`);
+                    requestNextMarket();
+                    return;
+                }
+
+                if (data.msg_type === 'history') {
+                    const prices = data.history?.prices || [];
+                    const digits = prices.map(getLastDigit).filter(digit => Number.isInteger(digit) && digit >= 0 && digit <= 9);
+                    const market = markets[next_index - 1];
+                    if (market && digits.length) {
+                        const even_odd = digits.filter(digit => digit % 2 === 0).length;
+                        const under_count = digits.filter(digit => digit <= barrier).length;
+                        const preferred_count = scan_type === 'even_odd'
+                            ? Math.max(even_odd, digits.length - even_odd)
+                            : Math.max(under_count, digits.length - under_count);
+                        const signal = scan_type === 'even_odd'
+                            ? (even_odd >= digits.length - even_odd ? 'EVEN' : 'ODD')
+                            : (under_count >= digits.length - under_count ? `UNDER ${barrier + 1}` : `OVER ${barrier}`);
+                        scanned_results.push({
+                            market: market.symbol,
+                            display_name: market.display_name,
+                            signal,
+                            confidence: Number(((preferred_count / digits.length) * 100).toFixed(1)),
+                            sample: digits.length,
+                        });
+                    }
+                    requestNextMarket();
+                }
+            };
+        });
+
+        try {
+            let live_results: ScanResult[] = [];
+            let last_error: unknown;
+            for (let index = 0; index < DERIV_ENDPOINTS.length; index += 1) {
+                try {
+                    setStatus(index === 0 ? 'Connecting to live Deriv market data…' : 'Trying the Deriv fallback market feed…');
+                    live_results = await runScan(index);
+                    if (live_results.length) break;
+                } catch (error) {
+                    last_error = error;
+                }
             }
-        };
+            if (!live_results.length) throw last_error || new Error('No live market data was returned');
+            setResults(live_results);
+            setStatus(`Live scan complete: ${live_results.length} markets analysed from recent ticks.`);
+        } catch (error) {
+            const reason = error instanceof Error && error.message ? ` (${error.message})` : '';
+            setStatus(`Could not connect to the live Deriv market feed. Please try again.${reason}`);
+        } finally {
+            setIsScanning(false);
+        }
     };
 
     return <section className='signal-ai' aria-label='Signal AI'>
