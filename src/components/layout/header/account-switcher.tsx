@@ -12,6 +12,48 @@ import { TAccountSwitcher } from './common/types';
 import AccountInfoWrapper from './account-info-wrapper';
 import './account-switcher.scss';
 
+const DemoAccountIcon = () => (
+    <svg className='acc-info__account-icon-svg' viewBox='0 0 48 48' aria-hidden='true'>
+        <circle cx='24' cy='24' r='23' fill='#6b939c' />
+        <path d='M14 11h12.7c6.7 0 11.3 4.5 11.3 11.2 0 4.4-2.2 7.9-5.9 9.8 3.8 1.7 5.9 4.9 5.9 9.1 0 6.4-4.6 10.9-11.3 10.9H14v-6.7h12.2c3.2 0 5.1-1.8 5.1-4.7 0-3.1-2.1-5-5.5-5H14v-6.7h11.9c3.4 0 5.5-2.1 5.5-5.5 0-3.3-2.1-5.4-5.5-5.4H20.7v26.3H14V11Z' fill='#fff' />
+    </svg>
+);
+
+const RealUsdAccountIcon = () => (
+    <svg className='acc-info__account-icon-svg' viewBox='0 0 48 48' aria-hidden='true'>
+        <defs>
+            <clipPath id='vintel-usd-flag-circle'>
+                <circle cx='24' cy='24' r='23' />
+            </clipPath>
+        </defs>
+        <g clipPath='url(#vintel-usd-flag-circle)'>
+            <rect width='48' height='48' fill='#fff' />
+            <rect y='0' width='48' height='3.7' fill='#e21b2d' />
+            <rect y='7.4' width='48' height='3.7' fill='#e21b2d' />
+            <rect y='14.8' width='48' height='3.7' fill='#e21b2d' />
+            <rect y='22.2' width='48' height='3.7' fill='#e21b2d' />
+            <rect y='29.6' width='48' height='3.7' fill='#e21b2d' />
+            <rect y='37' width='48' height='3.7' fill='#e21b2d' />
+            <rect y='44.4' width='48' height='3.6' fill='#e21b2d' />
+            <rect width='23' height='25.9' fill='#102a63' />
+            {Array.from({ length: 20 }).map((_, index) => {
+                const row = Math.floor(index / 4);
+                const column = index % 4;
+                return (
+                    <circle
+                        key={index}
+                        cx={3.8 + column * 5 + (row % 2 ? 2.5 : 0)}
+                        cy={3.5 + row * 4.2}
+                        r='0.85'
+                        fill='#fff'
+                    />
+                );
+            })}
+        </g>
+        <circle cx='24' cy='24' r='23' fill='none' stroke='#e21b2d' strokeWidth='1.2' />
+    </svg>
+);
+
 const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -68,70 +110,6 @@ const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
     const { currency, isVirtual, balance } = activeAccount;
     const showChevron = !isSingleAccount && !is_bot_running;
 
-    const accountIcon = isVirtual ? (
-        <span
-            aria-label='Demo account'
-            title='Demo account'
-            style={{
-                alignItems: 'center',
-                background: '#eef5f5',
-                border: '2px solid #8ba7aa',
-                borderRadius: '50%',
-                color: '#5f8589',
-                display: 'inline-flex',
-                flex: '0 0 auto',
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                height: '3.2rem',
-                justifyContent: 'center',
-                lineHeight: 1,
-                marginRight: '0.8rem',
-                width: '3.2rem',
-            }}
-        >
-            D
-        </span>
-    ) : (
-        <span
-            aria-label='Real USD account'
-            title='Real USD account'
-            style={{ display: 'inline-flex', flex: '0 0 auto', height: '3.2rem', marginRight: '0.8rem', width: '3.2rem' }}
-        >
-            <svg width='32' height='32' viewBox='0 0 32 32' aria-hidden='true'>
-                <defs>
-                    <clipPath id='usd-flag-circle'>
-                        <circle cx='16' cy='16' r='15' />
-                    </clipPath>
-                </defs>
-                <g clipPath='url(#usd-flag-circle)'>
-                    <rect width='32' height='32' fill='#fff' />
-                    <rect y='0' width='32' height='2.46' fill='#b22234' />
-                    <rect y='4.92' width='32' height='2.46' fill='#b22234' />
-                    <rect y='9.84' width='32' height='2.46' fill='#b22234' />
-                    <rect y='14.76' width='32' height='2.46' fill='#b22234' />
-                    <rect y='19.68' width='32' height='2.46' fill='#b22234' />
-                    <rect y='24.6' width='32' height='2.46' fill='#b22234' />
-                    <rect y='29.52' width='32' height='2.48' fill='#b22234' />
-                    <rect width='15.5' height='17.2' fill='#3c3b6e' />
-                    {Array.from({ length: 15 }).map((_, index) => {
-                        const row = Math.floor(index / 3);
-                        const column = index % 3;
-                        return (
-                            <circle
-                                key={index}
-                                cx={3.2 + column * 4.6 + (row % 2 ? 1.8 : 0)}
-                                cy={3.1 + row * 3.0}
-                                r='0.65'
-                                fill='#fff'
-                            />
-                        );
-                    })}
-                </g>
-                <circle cx='16' cy='16' r='15' fill='none' stroke='#d1d9db' strokeWidth='1.5' />
-            </svg>
-        </span>
-    );
-
     return (
         <div className='acc-info__wrapper' ref={wrapperRef}>
             <AccountInfoWrapper>
@@ -158,7 +136,13 @@ const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
                     <div className='acc-info__content'>
                         {(typeof balance !== 'undefined' || !currency) && (
                             <div className='acc-info__balance-section'>
-                                {accountIcon}
+                                <span
+                                    className='acc-info__account-icon'
+                                    aria-label={isVirtual ? 'Demo account' : 'Real USD account'}
+                                    title={isVirtual ? 'Demo account' : 'Real USD account'}
+                                >
+                                    {isVirtual ? <DemoAccountIcon /> : <RealUsdAccountIcon />}
+                                </span>
                                 <p
                                     data-testid='dt_balance'
                                     className={classNames('acc-info__balance', {
@@ -176,7 +160,6 @@ const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
                                         className={classNames('acc-info__select-arrow', {
                                             'acc-info__select-arrow--invert': isOpen,
                                         })}
-                                        style={{ marginLeft: '1.2rem' }}
                                     >
                                         <svg width='12' height='12' viewBox='0 0 12 12' fill='none'>
                                             <path d='M2 4L6 8L10 4' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' strokeLinejoin='round' />
