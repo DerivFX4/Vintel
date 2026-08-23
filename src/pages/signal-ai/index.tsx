@@ -21,13 +21,13 @@ type DerivMessage = {
 };
 
 const HISTORY_COUNT = 200;
-// Public market data does not require an authenticated account. Keep a known public test
-// app ID as a fallback because server-only Vercel variables are not automatically exposed
-// to browser bundles.
 const APP_ID = process.env.DERIV_APP_ID || '1089';
+// The current public Options endpoint does not require an app ID or authentication.
+// Keep legacy endpoints only as fallbacks for market-data compatibility.
 const DERIV_ENDPOINTS = [
+    'wss://api.derivws.com/trading/v1/options/ws/public',
+    'wss://ws.binaryws.com/websockets/v3',
     `wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`,
-    `wss://frontend.binaryws.com/websockets/v3?l=EN&app_id=${APP_ID}`,
 ];
 
 const getLastDigit = (price: number) => {
@@ -77,7 +77,13 @@ const SignalAI = () => {
                 const market = markets[next_index++];
                 setStatus(`Scanning ${next_index} of ${markets.length}: ${market.display_name}…`);
                 request_id += 1;
-                ws.send(JSON.stringify({ ticks_history: market.symbol, count: HISTORY_COUNT, end: 'latest', style: 'ticks', req_id: request_id }));
+                ws.send(JSON.stringify({
+                    ticks_history: market.symbol,
+                    count: HISTORY_COUNT,
+                    end: 'latest',
+                    style: 'ticks',
+                    req_id: request_id,
+                }));
             };
 
             ws.onopen = () => {
@@ -99,7 +105,6 @@ const SignalAI = () => {
                 }
 
                 if (data.error) {
-                    // A symbol can disappear temporarily; continue scanning the rest.
                     if (data.msg_type === 'history') {
                         requestNextMarket();
                         return;
@@ -126,13 +131,13 @@ const SignalAI = () => {
                     const digits = prices.map(getLastDigit).filter(digit => Number.isInteger(digit) && digit >= 0 && digit <= 9);
                     const market = markets[next_index - 1];
                     if (market && digits.length) {
-                        const even_odd = digits.filter(digit => digit % 2 === 0).length;
+                        const even_count = digits.filter(digit => digit % 2 === 0).length;
                         const under_count = digits.filter(digit => digit <= barrier).length;
                         const preferred_count = scan_type === 'even_odd'
-                            ? Math.max(even_odd, digits.length - even_odd)
+                            ? Math.max(even_count, digits.length - even_count)
                             : Math.max(under_count, digits.length - under_count);
                         const signal = scan_type === 'even_odd'
-                            ? (even_odd >= digits.length - even_odd ? 'EVEN' : 'ODD')
+                            ? (even_count >= digits.length - even_count ? 'EVEN' : 'ODD')
                             : (under_count >= digits.length - under_count ? `UNDER ${barrier + 1}` : `OVER ${barrier}`);
                         scanned_results.push({
                             market: market.symbol,
@@ -152,7 +157,7 @@ const SignalAI = () => {
             let last_error: unknown;
             for (let index = 0; index < DERIV_ENDPOINTS.length; index += 1) {
                 try {
-                    setStatus(index === 0 ? 'Connecting to live Deriv market data…' : 'Trying the Deriv fallback market feed…');
+                    setStatus(index === 0 ? 'Connecting to the Deriv public market feed…' : 'Trying a compatible Deriv market feed…');
                     live_results = await runScan(index);
                     if (live_results.length) break;
                 } catch (error) {
