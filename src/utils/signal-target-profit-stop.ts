@@ -10,11 +10,20 @@ const originalEmit = observer.emit.bind(observer);
 observer.emit = ((event: string, data?: any, ...rest: any[]) => {
     if (event === 'contract.status' && data?.id === 'contract.sold') {
         const targetProfit = Number(window.localStorage.getItem(TARGET_KEY) || 0);
-        const alreadyStopped = window.localStorage.getItem(STOPPED_KEY) === '1';
         const contract = data?.contract;
         const contractId = String(contract?.contract_id || contract?.id || '');
-        const lastContractId = window.localStorage.getItem(LAST_CONTRACT_KEY) || '';
         const contractProfit = Number(contract?.profit);
+        let currentProfit = Number(window.localStorage.getItem(CURRENT_KEY) || 0);
+        let alreadyStopped = window.localStorage.getItem(STOPPED_KEY) === '1';
+
+        // A new Signal AI run resets current profit to 0. Re-arm the stop guard here.
+        if (alreadyStopped && currentProfit === 0) {
+            window.localStorage.removeItem(STOPPED_KEY);
+            window.localStorage.removeItem(LAST_CONTRACT_KEY);
+            alreadyStopped = false;
+        }
+
+        const lastContractId = window.localStorage.getItem(LAST_CONTRACT_KEY) || '';
 
         if (
             targetProfit > 0 &&
@@ -24,14 +33,11 @@ observer.emit = ((event: string, data?: any, ...rest: any[]) => {
         ) {
             if (contractId) window.localStorage.setItem(LAST_CONTRACT_KEY, contractId);
 
-            const currentProfit = Number(window.localStorage.getItem(CURRENT_KEY) || 0);
-            const totalProfit = currentProfit + contractProfit;
+            currentProfit += contractProfit;
+            window.localStorage.setItem(CURRENT_KEY, String(currentProfit));
 
-            window.localStorage.setItem(CURRENT_KEY, String(totalProfit));
-
-            if (totalProfit >= targetProfit) {
+            if (currentProfit >= targetProfit) {
                 window.localStorage.setItem(STOPPED_KEY, '1');
-                window.localStorage.setItem('vintelfx_signal_current_profit', '0');
 
                 originalEmit(event, data, ...rest);
 
@@ -39,7 +45,7 @@ observer.emit = ((event: string, data?: any, ...rest: any[]) => {
                     originalEmit('bot.click_stop');
                     window.dispatchEvent(
                         new CustomEvent('vintelfx-target-profit-reached', {
-                            detail: { targetProfit, totalProfit },
+                            detail: { targetProfit, totalProfit: currentProfit },
                         })
                     );
                 }, 0);
