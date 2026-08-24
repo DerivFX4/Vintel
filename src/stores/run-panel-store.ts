@@ -631,13 +631,44 @@ showClearStatDialog = () => {
         observer.emit('statistics.clear');
     };
 
-    onBotContractEvent = (data: { is_sold?: boolean }) => {
-        if (data?.is_sold) {
-            this.is_sell_requested = false;
-            this.setContractStage(contract_stages.CONTRACT_CLOSED);
-        }
-    };
+    onBotContractEvent = (data: { is_sold?: boolean; profit?: number; status?: string }) => {
+    if (data?.is_sold) {
+        this.is_sell_requested = false;
+        this.setContractStage(contract_stages.CONTRACT_CLOSED);
 
+        const targetWins = Number(
+            window.localStorage.getItem('vintelfx_signal_target_wins') || 0
+        );
+
+        const isWin =
+            data.status === 'won' || Number(data.profit || 0) > 0;
+
+        if (targetWins > 0 && isWin) {
+            const currentWins =
+                Number(
+                    window.localStorage.getItem('vintelfx_signal_win_count') || 0
+                ) + 1;
+
+            window.localStorage.setItem(
+                'vintelfx_signal_win_count',
+                String(currentWins)
+            );
+
+            if (currentWins >= targetWins) {
+                window.localStorage.setItem(
+                    'vintelfx_signal_win_count',
+                    '0'
+                );
+
+                this.stopBot();
+
+                console.log(
+                    '🎉🎉 CONGRATULATIONS! VintelFX strategy worked 👐🏾'
+                );
+            }
+        }
+    }
+};
     onError = (data: { error: any }) => {
         // data.error for API errors, data for code errors
         const error = data.error || data;
