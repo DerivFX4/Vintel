@@ -85,29 +85,6 @@ export default class QuickStrategyStore implements IQuickStrategyStore {
         // Vintel Even bot is generated from the repository's known-good Quick Strategy
         // template instead of directly executing its earlier malformed custom XML.
         // action: LOAD deliberately prevents automatic trading.
-        if (name === 'Under 7 Recovery EVEN') {
-            // Validated Quick Strategy generation: Digits → Over/Under → Under 7.
-            // Load only; the bot does not start trading until the user runs it.
-            const form_data: TFormData = {
-                ...this.form_data,
-                symbol: 'R_50',
-                tradetype: 'overunder',
-                type: 'DIGITUNDER',
-                last_digit_prediction: 7,
-                stake: 0.5,
-                profit: 5,
-                loss: 10,
-                size: 2,
-                duration: 1,
-                durationtype: 't',
-                action: 'LOAD',
-            };
-            this.selected_strategy = 'MARTINGALE';
-            this.form_data = { ...this.form_data, ...form_data };
-            await this.onSubmit(form_data);
-            return;
-        }
-
         if (name === 'Vintel Even bot') {
             const form_data: TFormData = {
                 ...this.form_data,
