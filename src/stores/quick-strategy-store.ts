@@ -85,7 +85,7 @@ export default class QuickStrategyStore implements IQuickStrategyStore {
         // Vintel Even bot is generated from the repository's known-good Quick Strategy
         // template instead of directly executing its earlier malformed custom XML.
         // action: LOAD deliberately prevents automatic trading.
-        if (name === 'Differs, Ov1, Ov2 recovery EVEN') {
+        if (name === 'Under 7 Recovery EVEN') {
             // Use the known-good Quick Strategy XML path. The custom sequence/recovery
             // is configured by the generated bot, avoiding direct malformed XML injection.
             const form_data: TFormData = {
