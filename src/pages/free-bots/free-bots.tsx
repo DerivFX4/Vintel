@@ -14,6 +14,14 @@ type FreeBot = {
 
 const FREE_BOTS: FreeBot[] = [
     {
+        id: 'vintel-under-7-bot',
+        name: 'Vintel Under 7 bot',
+        description: 'Automated bot · Under 7 · Volatility 50 · $0.50 initial stake · 1 tick · TP $5 · SL $10 · Martingale ×2 · EVEN recovery after a loss.',
+        badge: 'NEW',
+        status: 'Automated bot',
+        xml_url: 'https://raw.githubusercontent.com/DerivFX4/Vintel/master/src/xml/Vintel%20Under%207%20bot.xml',
+    },
+    {
         id: 'vintel-even-bot',
         name: 'Vintel Even bot',
         description: 'Even digit bot · Volatility 25 (1s) · $1 stake · TP $5 · SL $10 · Martingale ×2 · resets after 2 wins.',
