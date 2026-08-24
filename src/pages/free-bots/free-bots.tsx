@@ -16,10 +16,10 @@ const FREE_BOTS: FreeBot[] = [
     {
         id: 'under-7-recovery-even',
         name: 'Under 7 Recovery EVEN',
-        description: 'Digits → Under 7 on Volatility 50 · initial stake $0.50 · 1 tick · TP $5 · SL $10 · Martingale ×2. After a losing Under 7 trade, recovery uses EVEN with the same Martingale ×2, then returns to Under 7 after recovery.',
+        description: 'Digits → Under 7 on Volatility 50 · initial stake $0.50 · 1 tick · TP $5 · SL $10 · Martingale ×2. Loaded through VintelFX Quick Strategy configuration.',
         badge: 'NEW',
         status: 'Automated bot',
-        xml_url: 'https://raw.githubusercontent.com/DerivFX4/Vintel/master/src/xml/Under%207%20Recovery%20EVEN.xml',
+        xml: '<xml xmlns="http://www.w3.org/1999/xhtml"></xml>',
     },
     {
         id: 'vintel-even-bot',
