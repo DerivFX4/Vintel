@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useStore } from './useStore';
 
 const useThemeSwitcher = () => {
@@ -10,21 +10,28 @@ const useThemeSwitcher = () => {
     };
     const { setDarkMode, is_dark_mode_on } = ui;
 
+    const applyTheme = useCallback(
+        (theme: 'light' | 'dark') => {
+            const body = document.body;
+            if (!body) return;
+
+            body.classList.remove('theme--light', 'theme--dark');
+            body.classList.add(`theme--${theme}`);
+            localStorage.setItem('theme', theme);
+            setDarkMode(theme === 'dark');
+        },
+        [setDarkMode]
+    );
+
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('theme');
+        const theme: 'light' | 'dark' = savedTheme === 'dark' ? 'dark' : 'light';
+        applyTheme(theme);
+    }, [applyTheme]);
+
     const toggleTheme = useCallback(() => {
-        const body = document.querySelector('body');
-        if (!body) return;
-        if (body.classList.contains('theme--dark')) {
-            localStorage.setItem('theme', 'light');
-            body.classList.remove('theme--dark');
-            body.classList.add('theme--light');
-            setDarkMode(false);
-        } else {
-            localStorage.setItem('theme', 'dark');
-            body.classList.remove('theme--light');
-            body.classList.add('theme--dark');
-            setDarkMode(true);
-        }
-    }, [setDarkMode]);
+        applyTheme(is_dark_mode_on ? 'light' : 'dark');
+    }, [applyTheme, is_dark_mode_on]);
 
     return {
         toggleTheme,
