@@ -14,12 +14,12 @@ type FreeBot = {
 
 const FREE_BOTS: FreeBot[] = [
     {
-        id: 'differs-ov1-ov2-recovery-even',
-        name: 'Differs, Ov1, Ov2 recovery EVEN',
-        description: 'Sequence: Differs (0) → Over 1 → Over 2. After a loss, recovery trades EVEN repeatedly with Martingale ×2 until a recovery win, then the bot continues to the next sequence step. After Over 2 wins, the configured Volatility market can change and the sequence restarts at Differs (0). Default stake $0.35 · TP $5 · SL $20.',
+        id: 'under-7-recovery-even',
+        name: 'Under 7 Recovery EVEN',
+        description: 'Digits → Under 7 on Volatility 50 · initial stake $0.50 · 1 tick · TP $5 · SL $10 · Martingale ×2. After a losing Under 7 trade, recovery uses EVEN with the same Martingale ×2, then returns to Under 7 after recovery.',
         badge: 'NEW',
         status: 'Automated bot',
-        xml_url: 'https://raw.githubusercontent.com/DerivFX4/Vintel/master/src/xml/Differs%20Ov1%20Ov2%20recovery%20EVEN.xml',
+        xml_url: 'https://raw.githubusercontent.com/DerivFX4/Vintel/master/src/xml/Under%207%20Recovery%20EVEN.xml',
     },
     {
         id: 'vintel-even-bot',
