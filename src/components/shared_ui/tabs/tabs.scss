@@ -12,6 +12,46 @@
         width: 100vw;
     }
 
+    /* VintelFX main navigation: permanently navy tab rail. */
+    &--main__tabs,
+    &--main__tabs > div,
+    &--main__tabs .dc-tabs__list,
+    &--main__tabs .dc-tabs__list--header--main__tabs,
+    &--main__tabs .dc-tabs__list > .dc-themed-scrollbars-wrapper,
+    &--main__tabs .dc-themed-scrollbars-wrapper,
+    &--main__tabs .dc-themed-scrollbars-wrapper > *,
+    &--main__tabs .dc-themed-scrollbars-wrapper > * > * {
+        background: #0B1F3A !important;
+        background-color: #0B1F3A !important;
+        background-image: none !important;
+    }
+
+    &--main__tabs .dc-tabs__item {
+        background: #0B1F3A !important;
+        background-color: #0B1F3A !important;
+        color: #ffffff !important;
+    }
+
+    &--main__tabs .dc-tabs__item svg {
+        width: 28px !important;
+        height: 28px !important;
+        color: #ff0000 !important;
+        fill: #ff0000 !important;
+    }
+
+    &--main__tabs .dc-tabs__active,
+    &--main__tabs .dc-tabs__item.dc-tabs__active,
+    &--main__tabs .dc-tabs__item--active {
+        background: #034cab !important;
+        background-color: #034cab !important;
+        color: #ffffff !important;
+    }
+
+    &--main__tabs .dc-tabs__active-line {
+        background: #ff0000 !important;
+        background-color: #ff0000 !important;
+    }
+
     &__list {
         width: 100%;
         line-height: 38px;
