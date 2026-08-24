@@ -24,14 +24,61 @@ const SignalAI = () => {
     const [is_scanning, setIsScanning] = useState(false); const [is_loading_run, setIsLoadingRun] = useState(false);
     const [stake, setStake] = useState('0.5'); const [wins, setWins] = useState('4'); const [stop_loss, setStopLoss] = useState('50'); const [martingale, setMartingale] = useState('2');
     const ws_ref = useRef<WebSocket | null>(null); const market_ticks_ref = useRef<Record<string, number[]>>({});
+    const shown_signal_counts_ref = useRef<Record<string, number>>({});
     const strongest = useMemo(() => results[0], [results]);
     useEffect(() => () => { try { ws_ref.current?.close(); } catch (_) {} }, []);
-    const buildResults = (ticksByMarket: Record<string, number[]>) => MARKETS.map(market => {
-        const prices = (ticksByMarket[market.symbol] || []).slice(-HISTORY_COUNT); const digits = prices.map(getLastDigit).filter(d => Number.isInteger(d) && d >= 0 && d <= 9); if (!digits.length) return null;
-        const even = digits.filter(d => d % 2 === 0).length; const under = digits.filter(d => d <= barrier).length; const preferred = scan_type === 'over_under' ? Math.max(under, digits.length - under) : Math.max(even, digits.length - even);
-        const signal = scan_type === 'over_under' ? (under >= digits.length - under ? `UNDER ${barrier + 1}` : `OVER ${barrier}`) : (even >= digits.length - even ? 'EVEN' : 'ODD');
-        return { market: market.symbol, display_name: market.display_name, signal, confidence: Number(((preferred / digits.length) * 100).toFixed(1)), sample: digits.length, last_digit: digits[digits.length - 1] } satisfies ScanResult;
-    }).filter((r): r is ScanResult => Boolean(r)).sort((a, b) => b.confidence - a.confidence);
+
+    // Build both sides for every market. When statistically equivalent/near-equivalent,
+    // prefer the less recently shown side so one default signal cannot dominate scans.
+    const buildResults = (ticksByMarket: Record<string, number[]>) => {
+        const candidates: ScanResult[] = [];
+        MARKETS.forEach(market => {
+            const prices = (ticksByMarket[market.symbol] || []).slice(-HISTORY_COUNT);
+            const digits = prices.map(getLastDigit).filter(d => Number.isInteger(d) && d >= 0 && d <= 9);
+            if (!digits.length) return;
+
+            const make = (signal: string, count: number) => candidates.push({
+                market: market.symbol,
+                display_name: market.display_name,
+                signal,
+                confidence: Number(((count / digits.length) * 100).toFixed(1)),
+                sample: digits.length,
+                last_digit: digits[digits.length - 1],
+            });
+
+            if (scan_type === 'over_under') {
+                const under = digits.filter(d => d <= barrier).length;
+                make(`UNDER ${barrier + 1}`, under);
+                make(`OVER ${barrier}`, digits.length - under);
+            } else {
+                const even = digits.filter(d => d % 2 === 0).length;
+                make('EVEN', even);
+                make('ODD', digits.length - even);
+            }
+        });
+
+        candidates.sort((a, b) => b.confidence - a.confidence);
+        if (!candidates.length) return candidates;
+
+        const bestConfidence = candidates[0].confidence;
+        // Keep the market statistically competitive: only rebalance among signals within 1% of the best.
+        const competitive = candidates.filter(candidate => bestConfidence - candidate.confidence <= 1);
+        const counts = shown_signal_counts_ref.current;
+        competitive.sort((a, b) => {
+            const countDiff = (counts[a.signal] || 0) - (counts[b.signal] || 0);
+            if (countDiff !== 0) return countDiff;
+            return b.confidence - a.confidence;
+        });
+
+        const selected = competitive[0] || candidates[0];
+        return [selected, ...candidates.filter(candidate => candidate !== selected)];
+    };
+
+    const rememberSelectedSignal = (scanResults: ScanResult[]) => {
+        const selected = scanResults[0];
+        if (selected) shown_signal_counts_ref.current[selected.signal] = (shown_signal_counts_ref.current[selected.signal] || 0) + 1;
+    };
+
     const handleLoadAndRun = () => {
         if (!strongest || is_loading_run) return; const config = { stake: Math.max(0, Number(stake) || 0), stop_loss: Math.max(0, Number(stop_loss) || 0), wins: Math.max(1, Number(wins) || 1), martingale: Math.max(1, Number(martingale) || 1) };
         setIsLoadingRun(true); window.dispatchEvent(new CustomEvent('vintelfx-load-and-run-signal-bot', { detail: { result: strongest, config } }));
@@ -41,11 +88,11 @@ const SignalAI = () => {
         if (is_scanning) return; try { ws_ref.current?.close(); } catch (_) {} setIsScanning(true); setResults([]); market_ticks_ref.current = {}; setStatus('Connecting to Deriv public live market data…');
         const ws = new WebSocket(DERIV_PUBLIC_ENDPOINT); ws_ref.current = ws; let received_history = 0; let settled = false; let next_request_id = 1; const request_market = new Map<number, Market>();
         const fail = (message: string) => { if (settled) return; settled = true; setIsScanning(false); setStatus(`Could not retrieve the live Deriv market analysis. Please try again. (${message})`); try { ws.close(); } catch (_) {} };
-        const finish = () => { if (settled) return; settled = true; setResults(buildResults(market_ticks_ref.current)); setStatus(`LIVE · ${MARKETS.length} Volatility markets analysed from ${HISTORY_COUNT} recent ticks. Showing only the strongest signal.`); setIsScanning(false); };
+        const finish = () => { if (settled) return; settled = true; const scanResults = buildResults(market_ticks_ref.current); setResults(scanResults); rememberSelectedSignal(scanResults); setStatus(`LIVE · ${MARKETS.length} Volatility markets analysed from ${HISTORY_COUNT} recent ticks. Showing the strongest balanced signal.`); setIsScanning(false); };
         ws.onopen = () => { setStatus('Connected to Deriv. Loading recent live ticks…'); MARKETS.forEach(market => { const req_id = next_request_id++; request_market.set(req_id, market); ws.send(JSON.stringify({ ticks_history: market.symbol, count: HISTORY_COUNT, end: 'latest', style: 'ticks', subscribe: 1, req_id })); }); };
         ws.onmessage = event => { let data: DerivMessage; try { data = JSON.parse(event.data) as DerivMessage; } catch (_) { return; } if (data.error) return fail(data.error.message || 'Deriv rejected the market-data request');
             if (data.msg_type === 'history' && data.req_id) { const market = request_market.get(data.req_id); if (!market) return; request_market.delete(data.req_id); market_ticks_ref.current[market.symbol] = (data.history?.prices || []).map(Number).filter(Number.isFinite).slice(-HISTORY_COUNT); received_history++; if (received_history === MARKETS.length) finish(); else setStatus(`LIVE · Loading market history ${received_history}/${MARKETS.length}…`); return; }
-            if (data.msg_type === 'tick' && data.tick?.symbol && data.tick.quote !== undefined) { const symbol = data.tick.symbol; const quote = Number(data.tick.quote); if (!Number.isFinite(quote) || !MARKETS.some(m => m.symbol === symbol)) return; const current = market_ticks_ref.current[symbol] || []; market_ticks_ref.current[symbol] = [...current, quote].slice(-HISTORY_COUNT); setResults(buildResults(market_ticks_ref.current)); setStatus(`LIVE · Strongest signal updated from the latest Deriv tick · ${new Date().toLocaleTimeString()}`); }
+            if (data.msg_type === 'tick' && data.tick?.symbol && data.tick.quote !== undefined) { const symbol = data.tick.symbol; const quote = Number(data.tick.quote); if (!Number.isFinite(quote) || !MARKETS.some(m => m.symbol === symbol)) return; const current = market_ticks_ref.current[symbol] || []; market_ticks_ref.current[symbol] = [...current, quote].slice(-HISTORY_COUNT); const scanResults = buildResults(market_ticks_ref.current); setResults(scanResults); setStatus(`LIVE · Strongest signal updated from the latest Deriv tick · ${new Date().toLocaleTimeString()}`); }
         };
         ws.onerror = () => fail('Live Deriv WebSocket connection failed'); ws.onclose = () => { if (!settled) fail('Live Deriv WebSocket closed unexpectedly'); }; window.setTimeout(() => { if (!settled) fail('Live market connection timed out'); }, 30000);
     };
