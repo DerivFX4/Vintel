@@ -108,3 +108,16 @@
     .signal-ai__ready .signal-ai__scan-orb{width:min(70vw, 310px);border-width:7px}
     .signal-ai__ready .signal-ai__scan-orb-wrap{min-height:300px}
 }
+
+/* Scan state typography */
+.signal-ai__scan-orb--scanning .signal-ai__scan-orb-title{
+    font-size:clamp(1.65rem, 6vw, 2.45rem);
+}
+.signal-ai__scan-orb-progress{
+    display:block;
+    margin-top:.2rem;
+    color:#FF0000;
+    font-size:clamp(3.35rem, 11vw, 5.4rem);
+    line-height:1;
+    font-weight:900;
+}
