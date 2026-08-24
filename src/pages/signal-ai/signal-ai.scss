@@ -121,3 +121,17 @@
     line-height:1;
     font-weight:900;
 }
+
+/* Scanning state typography */
+.signal-ai__ready .signal-ai__scan-orb--scanning .signal-ai__scan-orb-title{
+    font-size:clamp(1.15rem, 4vw, 1.8rem);
+    letter-spacing:.08em;
+}
+.signal-ai__ready .signal-ai__scan-orb-progress{
+    display:block;
+    margin-top:.15rem;
+    color:#FF0000;
+    font-size:clamp(3.2rem, 12vw, 5.6rem);
+    line-height:1;
+    font-weight:900;
+}
