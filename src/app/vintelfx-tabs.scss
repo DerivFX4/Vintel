@@ -1,21 +1,26 @@
-/* VintelFX shared tab branding: applies to every current and future main tab. */
+/* VintelFX shared tab branding: permanent main tab colours. */
 .main__container .main__tabs .dc-tabs__list {
-    background: #000080 !important;
+    background: #0B1F3A !important;
+    background-color: #0B1F3A !important;
 }
 
 .main__container .main__tabs .dc-tabs__item {
-    background: #000080 !important;
+    background: #0B1F3A !important;
+    background-color: #0B1F3A !important;
     color: #ffffff !important;
 }
 
-.main__container .main__tabs .dc-tabs__item *,
 .main__container .main__tabs .dc-tabs__item svg {
-    color: #ffffff !important;
-    fill: currentColor !important;
+    width: 28px !important;
+    height: 28px !important;
+    color: #ff0000 !important;
+    fill: #ff0000 !important;
 }
 
-.main__container .main__tabs .dc-tabs__active {
-    background: #87ceeb !important;
+.main__container .main__tabs .dc-tabs__active,
+.main__container .main__tabs .dc-tabs__item.dc-tabs__active {
+    background: #034cab !important;
+    background-color: #034cab !important;
     color: #ffffff !important;
 }
 
