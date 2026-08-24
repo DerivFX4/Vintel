@@ -11,6 +11,17 @@ const RiskDisclaimer = () => {
         return () => setMounted(false);
     }, []);
 
+    useEffect(() => {
+        if (!open) return;
+        const close = event => {
+            const content = document.querySelector('.risk-disclaimer__content');
+            if (content && content.contains(event.target)) return;
+            setOpen(false);
+        };
+        document.addEventListener('pointerdown', close, true);
+        return () => document.removeEventListener('pointerdown', close, true);
+    }, [open]);
+
     if (!mounted) return null;
 
     const content = !open ? (
@@ -18,8 +29,8 @@ const RiskDisclaimer = () => {
             ⚠️ Risk Disclaimer
         </button>
     ) : (
-        <div className='risk-disclaimer__panel' role='dialog' aria-label='Risk Disclaimer' onClick={() => setOpen(false)}>
-            <div className='risk-disclaimer__content' onClick={event => event.stopPropagation()}>
+        <div className='risk-disclaimer__panel' role='dialog' aria-label='Risk Disclaimer'>
+            <div className='risk-disclaimer__content'>
                 <div className='risk-disclaimer__heading'>
                     <strong>⚠️ Risk Disclaimer</strong>
                     <button type='button' className='risk-disclaimer__close' aria-label='Close risk disclaimer' onClick={() => setOpen(false)}>
