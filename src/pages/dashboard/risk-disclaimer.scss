@@ -9,6 +9,7 @@
     background: #f4c430;
     color: #000;
     font-weight: 700;
+    font-size: 1rem;
     cursor: pointer;
     box-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 20%);
 }
@@ -54,7 +55,7 @@
 }
 
 .risk-disclaimer__text {
-    font-size: 0.82rem;
+    font-size: 0.96rem;
     line-height: 1.45;
 }
 
@@ -74,7 +75,7 @@
 @media (max-width: 600px) {
     .risk-disclaimer__trigger {
         bottom: 25%;
-        font-size: 0.78rem;
+        font-size: 0.92rem;
         padding: 0.7rem 0.85rem;
     }
 
@@ -86,7 +87,7 @@
     }
 
     .risk-disclaimer__text {
-        font-size: 0.75rem;
+        font-size: 0.9rem;
         line-height: 1.4;
     }
 }
