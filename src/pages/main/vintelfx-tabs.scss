@@ -1,24 +1,30 @@
-/* Shared VintelFX tab branding: no white header/overlay. */
-.main__container .main__tabs.dc-tabs,
+/* VintelFX main tabs: remove the white header layer and keep the tab rail permanently navy. */
+.main__container .main__tabs,
+.main__container .main__tabs .dc-tabs,
+.main__container .main__tabs .dc-tabs > div,
+.main__container .main__tabs .dc-tabs__list,
 .main__container .main__tabs .dc-tabs__list--header,
 .main__container .main__tabs .dc-tabs__list--header--main__tabs,
+.main__container .main__tabs .dc-tabs__list--header--main__tabs > *,
 .main__container .main__tabs .dc-themed-scrollbars-wrapper,
-.main__container .main__tabs .dc-tabs__list {
+.main__container .main__tabs .dc-themed-scrollbars-wrapper > *,
+.main__container .main__tabs .dc-themed-scrollbars-wrapper > * > * {
     background: #0B1F3A !important;
     background-color: #0B1F3A !important;
 }
 
-.main__container .main__tabs .dc-tabs__item {
+.main__container .main__tabs .dc-tabs__item,
+.main__container .main__tabs .dc-tabs__item:not(.dc-tabs__active) {
     background: #0B1F3A !important;
     background-color: #0B1F3A !important;
     color: #ffffff !important;
+}
 
-    svg {
-        width: 28px !important;
-        height: 28px !important;
-        color: #ff0000 !important;
-        fill: #ff0000 !important;
-    }
+.main__container .main__tabs .dc-tabs__item svg {
+    width: 28px !important;
+    height: 28px !important;
+    color: #ff0000 !important;
+    fill: #ff0000 !important;
 }
 
 .main__container .main__tabs .dc-tabs__active,
@@ -32,4 +38,9 @@
 .main__container .main__tabs .dc-tabs__active-line {
     background: #ff0000 !important;
     background-color: #ff0000 !important;
+}
+
+.main__container .main__tabs .tabs-shadow {
+    background: #0B1F3A !important;
+    background-image: none !important;
 }
