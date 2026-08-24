@@ -1,15 +1,37 @@
+.main__container {
+    background-color: #0B1F3A !important;
+}
+
 .main__container .dc-tabs {
     &__active {
-        background-color: var(--button-primary-hover) !important;
-        color: #fff !important;
+        background-color: #034CAB !important;
+        color: #FFFFFF !important;
     }
 
     &__active-line {
-        background-color: #e31c3d !important;
+        background-color: #FF0000 !important;
+    }
+
+    &__tab {
+        background-color: #0B1F3A !important;
+    }
+
+    &__tab-icon,
+    svg {
+        width: 28px !important;
+        height: 28px !important;
+        color: #FF0000 !important;
+        fill: #FF0000 !important;
     }
 }
 
 .main__container .dc-tabs__active,
 .main__container .dc-tabs__active * {
-    color: #fff !important;
+    background-color: #034CAB !important;
+    color: #FFFFFF !important;
+}
+
+.load-and-run,
+.load-and-run button {
+    color: #FFFFFF !important;
 }
