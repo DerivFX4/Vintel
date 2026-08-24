@@ -17,6 +17,7 @@ import { useStore } from '@/hooks/useStore';
 import { Localize, localize } from '@deriv-com/translations';
 import { useDevice } from '@deriv-com/ui';
 import ThemedScrollbars from '../shared_ui/themed-scrollbars';
+import './run-panel-tabs.scss';
 
 type TStatisticsTile = { content: React.ElementType | string; contentClassName: string; title: string };
 type TStatisticsSummary = { currency: string; is_mobile: boolean; lost_contracts: number; number_of_runs: number; total_stake: number; total_payout: number; toggleStatisticsInfoModal: () => void; total_profit: number; won_contracts: number };
@@ -56,13 +57,13 @@ const DrawerContent = ({ active_index, is_drawer_open, active_tour, setActiveTab
     return (
         <>
             <Tabs active_index={active_index} onTabItemClick={setActiveTabIndex} top>
-                <div id='db-run-panel-tab__summary' label={<span className='run-panel__tab-label'><span className='run-panel__tab-icon' aria-hidden='true'>▥</span><Localize i18n_default_text='Summary' /></span>}>
+                <div id='db-run-panel-tab__summary' label={<span className='run-panel__tab-label'><span className='run-panel__tab-icon' aria-hidden='true'>📊</span><Localize i18n_default_text='Summary' /></span>}>
                     <Summary is_drawer_open={is_drawer_open} />
                 </div>
-                <div id='db-run-panel-tab__transactions' label={<span className='run-panel__tab-label'><span className='run-panel__tab-icon' aria-hidden='true'>☷</span><Localize i18n_default_text='Transactions' /></span>}>
+                <div id='db-run-panel-tab__transactions' label={<span className='run-panel__tab-label'><span className='run-panel__tab-icon' aria-hidden='true'>⇄</span><Localize i18n_default_text='Transactions' /></span>}>
                     <Transactions is_drawer_open={is_drawer_open} />
                 </div>
-                <div id='db-run-panel-tab__journal' label={<span className='run-panel__tab-label'><span className='run-panel__tab-icon' aria-hidden='true'>▯</span><Localize i18n_default_text='Journal' /></span>}>
+                <div id='db-run-panel-tab__journal' label={<span className='run-panel__tab-label'><span className='run-panel__tab-icon' aria-hidden='true'>📖</span><Localize i18n_default_text='Journal' /></span>}>
                     <Journal />
                 </div>
             </Tabs>
