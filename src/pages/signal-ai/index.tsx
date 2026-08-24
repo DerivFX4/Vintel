@@ -63,8 +63,31 @@ const SignalAI = () => {
 
     const handleLoadAndRun = () => { if (!strongest || is_loading_run) return; const config = { stake: Math.max(0, Number(stake) || 0), target_profit: Math.max(0.01, Number(target_profit) || 10), stop_loss: Math.max(0, Number(stop_loss) || 0), martingale: Math.max(1, Number(martingale) || 1) }; window.localStorage.setItem('vintelfx_signal_target_profit', String(config.target_profit)); window.localStorage.setItem('vintelfx_signal_current_profit', '0'); setIsLoadingRun(true); window.dispatchEvent(new CustomEvent('vintelfx-load-and-run-signal-bot', { detail: { result: strongest, config } })); setStatus(`Loading ${strongest.signal} with ${strongest.confidence}% confidence…`); window.setTimeout(() => setIsLoadingRun(false), 3000); };
 
+    const stopScan = () => {
+        scan_active_ref.current = false;
+        scan_cycle_ref.current += 1;
+        if (scan_timer_ref.current) {
+            window.clearInterval(scan_timer_ref.current);
+            scan_timer_ref.current = null;
+        }
+        try { ws_ref.current?.close(); } catch (_) {}
+        ws_ref.current = null;
+        setIsScanning(false);
+        setScanProgress(0);
+        setStatus('Scan stopped. Choose your signal settings and tap SCAN when ready.');
+    };
+
+    const returnToMainScan = () => {
+        stopScan();
+        setResults([]);
+        setStatus('Ready to scan all Volatility markets.');
+    };
+
     const handleScan = () => {
-        if (is_scanning) return; try { ws_ref.current?.close(); } catch (_) {} if (scan_timer_ref.current) window.clearInterval(scan_timer_ref.current);
+        if (is_scanning) {
+            stopScan();
+            return;
+        } try { ws_ref.current?.close(); } catch (_) {} if (scan_timer_ref.current) window.clearInterval(scan_timer_ref.current);
         setIsScanning(true); setResults([]); setScanProgress(0); market_ticks_ref.current = {}; scan_active_ref.current = true; scan_cycle_ref.current = 1; scan_started_ref.current = Date.now();
         scan_timer_ref.current = window.setInterval(() => setScanProgress(previous => previous >= 100 ? 1 : previous + 1), 60);
         const startCycle = () => {
@@ -89,11 +112,11 @@ const SignalAI = () => {
                 </div>
                 {scan_type === 'over_under' && <label className='signal-ai__barrier-control'><span>Digit barrier</span><select value={barrier} disabled={is_scanning} onChange={e => setBarrier(Number(e.target.value))}><option value={4}>Under 5 / Over 4</option><option value={5}>Under 6 / Over 5</option><option value={6}>Under 7 / Over 6</option></select></label>}
             </div>
-            <div className='signal-ai__scan-orb-wrap'><button type='button' className={`signal-ai__scan-orb ${is_scanning ? 'signal-ai__scan-orb--scanning' : ''}`} onClick={handleScan} disabled={is_scanning} aria-label='Scan live markets'><span className='signal-ai__scan-orb-title'>{is_scanning ? `${scan_progress}%` : 'SCAN'}</span></button></div>
-            <div className='signal-ai__scan-copy'>{is_scanning ? `Scanning ${MARKETS.length} Volatility markets…` : `Tap scan to find a ${scan_type === 'even_odd' ? 'Even / Odd' : scan_type === 'over_under' ? 'Over / Under' : 'signal'} entry point.`}</div>
+            <div className='signal-ai__scan-orb-wrap'><button type='button' className={`signal-ai__scan-orb ${is_scanning ? 'signal-ai__scan-orb--scanning' : ''}`} onClick={handleScan} aria-label={is_scanning ? 'Stop scanning' : 'Scan live markets'}><span className='signal-ai__scan-orb-title'>{is_scanning ? 'STOP' : 'SCAN'}</span></button></div>
+            <div className='signal-ai__scan-copy'>{is_scanning ? 'Scanning… Tap STOP to stop the scan.' : `Tap scan to find a ${scan_type === 'even_odd' ? 'Even / Odd' : scan_type === 'over_under' ? 'Over / Under' : 'signal'} entry point.`}</div>
             <div className='signal-ai__status' role='status'>{is_scanning && <span className='signal-ai__spinner' />} {status}</div>
         </div>}
-        {strongest && <><div className='signal-ai__result-top'><h1>Signal AI</h1><div className='signal-ai__switch' role='tablist' aria-label='Signal type'><button type='button' className={scan_type === 'over_under' ? 'is-active' : ''} onClick={() => setScanType('over_under')}>Over / Under</button><button type='button' className={scan_type === 'even_odd' ? 'is-active' : ''} onClick={() => setScanType('even_odd')}>Even / Odd</button></div><div className='signal-ai__market-card'><div className='signal-ai__market-head'><span className='signal-ai__eyebrow'>BEST MARKET</span><span className='signal-ai__trophy'>🏆</span></div><h2>{strongest.display_name}</h2><div className='signal-ai__result-row'><span>Trade Type</span><strong className={`signal-ai__signal-pill ${getSignalTone(strongest.signal)}`}>{strongest.signal}</strong></div><div className='signal-ai__result-row'><span>Signal Strength</span><strong className='signal-ai__win-rate'>{strongest.strength}%</strong></div><div className='signal-ai__result-row'><span>Confidence</span><strong className='signal-ai__win-rate'>{strongest.confidence}% · {strongest.agreement}/4</strong></div></div><div className='signal-ai__live-status'>● {status}</div></div><div className='signal-ai__result-bottom'><div className='signal-ai__config'>{input('Stake (USD)', stake, setStake, '0.01', '0')} {input('Target Profit (USD)', target_profit, setTargetProfit, '0.01', '0.01')} {input('Stop Loss (USD)', stop_loss, setStopLoss, '0.01', '0')} {input('Martingale', martingale, setMartingale, '0.01', '1')}</div><div className='signal-ai__result-actions'><button type='button' className='signal-ai__rescan' onClick={handleScan} disabled={is_scanning || is_loading_run}>↻ Rescan</button><button type='button' className='signal-ai__load-run' onClick={handleLoadAndRun} disabled={is_loading_run}>{is_loading_run ? 'Loading…' : '▶ Load & Run Bot'}</button></div></div></>}
+        {strongest && <><div className='signal-ai__result-top'><h1>Signal AI</h1><div className='signal-ai__switch' role='tablist' aria-label='Signal type'><button type='button' className={scan_type === 'over_under' ? 'is-active' : ''} onClick={() => setScanType('over_under')}>Over / Under</button><button type='button' className={scan_type === 'even_odd' ? 'is-active' : ''} onClick={() => setScanType('even_odd')}>Even / Odd</button></div><div className='signal-ai__market-card'><div className='signal-ai__market-head'><span className='signal-ai__eyebrow'>BEST MARKET</span><span className='signal-ai__trophy'>🏆</span></div><h2>{strongest.display_name}</h2><div className='signal-ai__result-row'><span>Trade Type</span><strong className={`signal-ai__signal-pill ${getSignalTone(strongest.signal)}`}>{strongest.signal}</strong></div><div className='signal-ai__result-row'><span>Signal Strength</span><strong className='signal-ai__win-rate'>{strongest.strength}%</strong></div><div className='signal-ai__result-row'><span>Confidence</span><strong className='signal-ai__win-rate'>{strongest.confidence}% · {strongest.agreement}/4</strong></div></div><div className='signal-ai__live-status'>● {status}</div></div><div className='signal-ai__result-bottom'><div className='signal-ai__config'>{input('Stake (USD)', stake, setStake, '0.01', '0')} {input('Target Profit (USD)', target_profit, setTargetProfit, '0.01', '0.01')} {input('Stop Loss (USD)', stop_loss, setStopLoss, '0.01', '0')} {input('Martingale', martingale, setMartingale, '0.01', '1')}</div><div className='signal-ai__result-actions'><button type='button' className='signal-ai__rescan' onClick={returnToMainScan} disabled={is_loading_run}>↻ Rescan</button><button type='button' className='signal-ai__load-run' onClick={handleLoadAndRun} disabled={is_loading_run}>{is_loading_run ? 'Loading…' : '▶ Load & Run Bot'}</button></div></div></>}
         <p className='signal-ai__warning'>⚠️ Signal AI analyses recent live ticks statistically. A confidence percentage is not a prediction or guarantee that the next contract will win.</p>
     </section>;
 };
