@@ -1,0 +1,15 @@
+.main__container .dc-tabs {
+    &__active {
+        background-color: var(--button-primary-hover) !important;
+        color: $color-white !important;
+    }
+
+    &__active-line {
+        background-color: $color-red !important;
+    }
+}
+
+.main__container .dc-tabs__active,
+.main__container .dc-tabs__active * {
+    color: $color-white !important;
+}
