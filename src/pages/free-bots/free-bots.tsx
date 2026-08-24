@@ -58,7 +58,9 @@ const FreeBots = () => {
         setError('');
         setLoadingId(bot.id);
         try {
-            const response = bot.xml ? null : await fetch(bot.xml_url!);\n            if (response && !response.ok) throw new Error(`Unable to fetch bot file (HTTP ${response.status}).`);\n            const xml = bot.xml ?? await response!.text();
+            const response = bot.xml ? null : await fetch(bot.xml_url!);
+            if (response && !response.ok) throw new Error(`Unable to fetch bot file (HTTP ${response.status}).`);
+            const xml = bot.xml ?? await response!.text();
             if (!xml.trim().startsWith('<xml')) throw new Error('The bot file is not a valid Blockly XML workspace.');
             dashboard.setActiveTab(1);
             window.dispatchEvent(new CustomEvent('vintelfx-load-free-bot', { detail: { name: bot.name, xml } }));
