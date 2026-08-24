@@ -50,10 +50,38 @@ const SignalAI = () => {
         ws.onerror = () => fail('Live Deriv WebSocket connection failed'); ws.onclose = () => { if (!settled) fail('Live Deriv WebSocket closed unexpectedly'); }; window.setTimeout(() => { if (!settled) fail('Live market connection timed out'); }, 30000);
     };
     const input = (label: string, value: string, setter: (v: string) => void, step: string, min: string) => <label className='signal-ai__param'><span>{label}</span><input type='number' value={value} min={min} step={step} onChange={e => setter(e.target.value)} disabled={!strongest || is_scanning || is_loading_run} /></label>;
-    return <section className='signal-ai' aria-label='Signal AI'>
-        <div className='signal-ai__controls'><label><span>Signal type</span><select value={scan_type} disabled={is_scanning} onChange={e => setScanType(e.target.value as ScanType)}><option value='even_odd'>Odd / Even</option><option value='over_under'>Over / Under</option></select></label>{scan_type === 'over_under' && <label><span>Digit barrier</span><select value={barrier} disabled={is_scanning} onChange={e => setBarrier(Number(e.target.value))}><option value={4}>Under 5 / Over 4</option><option value={5}>Under 6 / Over 5</option><option value={6}>Under 7 / Over 6</option></select></label>}<button type='button' className='signal-ai__scan-button' onClick={handleScan} disabled={is_scanning}>{is_scanning ? 'Scanning live…' : '🔎 Scan live markets'}</button></div>
-        <div className='signal-ai__status' role='status'>{is_scanning && <span className='signal-ai__spinner' />} {status}</div>
-        {strongest && <div className='signal-ai__best'><div><span className='signal-ai__eyebrow'>STRONGEST CURRENT SIGNAL</span><h2>{strongest.display_name}</h2><p>{strongest.signal} · {strongest.confidence}% confidence · latest digit {strongest.last_digit}</p><div className='signal-ai__config'>{input('Stake', stake, setStake, '0.01', '0')} {input('No. of Wins', wins, setWins, '1', '1')} {input('Stop Loss', stop_loss, setStopLoss, '0.01', '0')} {input('Martingale', martingale, setMartingale, '0.01', '1')}</div></div><div className='signal-ai__best-action'><strong>{strongest.confidence}%</strong><button type='button' className='signal-ai__load-run' onClick={handleLoadAndRun} disabled={is_loading_run}>{is_loading_run ? 'Loading…' : '🍏 Load and run'}</button></div></div>}
+    return <section className={`signal-ai ${strongest ? 'signal-ai--has-result' : ''}`} aria-label='Signal AI'>
+        {!strongest && <div className='signal-ai__ready'>
+            <div className='signal-ai__scan-orb-wrap'>
+                <button type='button' className={`signal-ai__scan-orb ${is_scanning ? 'signal-ai__scan-orb--scanning' : ''}`} onClick={handleScan} disabled={is_scanning} aria-label='Scan live markets'>
+                    <span className='signal-ai__scan-orb-title'>{is_scanning ? 'SCANNING' : 'SCAN'}</span>
+                    <span className='signal-ai__scan-orb-copy'>{is_scanning ? 'Searching live markets…' : 'Tap scan to find an Even / Odd entry point.'}</span>
+                </button>
+            </div>
+            <div className='signal-ai__pre-options'><label><span>Signal type</span><select value={scan_type} disabled={is_scanning} onChange={e => setScanType(e.target.value as ScanType)}><option value='even_odd'>Odd / Even</option><option value='over_under'>Over / Under</option></select></label>{scan_type === 'over_under' && <label><span>Digit barrier</span><select value={barrier} disabled={is_scanning} onChange={e => setBarrier(Number(e.target.value))}><option value={4}>Under 5 / Over 4</option><option value={5}>Under 6 / Over 5</option><option value={6}>Under 7 / Over 6</option></select></label>}</div>
+            <div className='signal-ai__status' role='status'>{is_scanning && <span className='signal-ai__spinner' />} {status}</div>
+        </div>}
+        {strongest && <>
+            <div className='signal-ai__result-top'>
+                <h1>Signal AI</h1>
+                <div className='signal-ai__switch' role='tablist' aria-label='Signal type'>
+                    <button type='button' className={scan_type === 'over_under' ? 'is-active' : ''} disabled={is_scanning} onClick={() => setScanType('over_under')}>Over / Under</button>
+                    <button type='button' className={scan_type === 'even_odd' ? 'is-active' : ''} disabled={is_scanning} onClick={() => setScanType('even_odd')}>Even / Odd</button>
+                </div>
+                <div className='signal-ai__market-card'>
+                    <div className='signal-ai__market-head'><span className='signal-ai__eyebrow'>BEST MARKET</span><span className='signal-ai__trophy'>🏆</span></div>
+                    <h2>{strongest.display_name}</h2>
+                    <div className='signal-ai__result-row'><span>Market</span><strong>{strongest.display_name}</strong></div>
+                    <div className='signal-ai__result-row'><span>Trade Type</span><strong className='signal-ai__signal-pill'>{strongest.signal}</strong></div>
+                    <div className='signal-ai__result-row'><span>Win Rate</span><strong className='signal-ai__win-rate'>{strongest.confidence}%</strong></div>
+                </div>
+                <div className='signal-ai__live-status' role='status'>● {status}</div>
+            </div>
+            <div className='signal-ai__result-bottom'>
+                <div className='signal-ai__config'>{input('Stake (USD)', stake, setStake, '0.01', '0')} {input('No. of Wins', wins, setWins, '1', '1')} {input('Stop Loss (USD)', stop_loss, setStopLoss, '0.01', '0')} {input('Martingale', martingale, setMartingale, '0.01', '1')}</div>
+                <div className='signal-ai__result-actions'><button type='button' className='signal-ai__rescan' onClick={handleScan} disabled={is_scanning || is_loading_run}>↻ Rescan</button><button type='button' className='signal-ai__load-run' onClick={handleLoadAndRun} disabled={is_loading_run}>{is_loading_run ? 'Loading…' : '▶ Load & Run Bot'}</button></div>
+            </div>
+        </>}
         <p className='signal-ai__warning'>⚠️ Signal AI analyses recent live ticks statistically. A confidence percentage is not a prediction or guarantee that the next contract will win.</p>
     </section>;
 };
