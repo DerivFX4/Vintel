@@ -14,14 +14,6 @@ type FreeBot = {
 
 const FREE_BOTS: FreeBot[] = [
     {
-        id: 'vintel-only-ups-downs',
-        name: 'Vintel Only ups/downs',
-        description: 'Only Ups/Only Downs · paired RUNHIGH + RUNLOW entries · Volatility 25 (1s) · $1 stake per side · 3 ticks · TP $10 · SL $20 · Martingale ×1.',
-        badge: 'NEW',
-        status: 'Automated bot',
-        xml_url: 'https://raw.githubusercontent.com/DerivFX4/Vintel/master/src/xml/Vintel%20Only%20ups-downs.xml',
-    },
-    {
         id: 'vintel-even-bot',
         name: 'Vintel Even bot',
         description: 'Even digit bot · Volatility 25 (1s) · $1 stake · TP $5 · SL $10 · Martingale ×2 · resets after 2 wins.',
