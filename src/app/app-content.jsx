@@ -17,6 +17,7 @@ import Audio from '../components/audio';
 import BlocklyLoading from '../components/blockly-loading';
 import BotStopped from '../components/bot-stopped';
 import BotBuilder from '../pages/bot-builder';
+import RiskDisclaimer from '../pages/dashboard/risk-disclaimer';
 import Main from '../pages/main';
 import './app.scss';
 import 'react-toastify/dist/ReactToastify.css';
@@ -150,6 +151,7 @@ const AppContent = observer(() => {
                     <BotBuilder />
                     <BotStopped />
                     <TransactionDetailsModal />
+                    <RiskDisclaimer />
                     <ToastContainer limit={3} draggable={false} />
                 </div>
             </ThemeProvider>
