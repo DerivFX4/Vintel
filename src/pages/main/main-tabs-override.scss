@@ -1,24 +1,44 @@
-.main__container {
-    background-color: #0B1F3A !important;
-}
-
 .main__container .dc-tabs {
+    /* Keep the main navigation independent of Light/Dark theme variables. */
+    --general-main-1: #034CAB;
+    --general-section-1: #0B1F3A;
+    --text-general: #FFFFFF;
+    --text-prominent: #FFFFFF;
+
+    background: #0B1F3A !important;
     background-color: #0B1F3A !important;
+    background-image: none !important;
+
+    > div,
+    &__list,
+    &__list > .dc-themed-scrollbars-wrapper,
+    &__list > .dc-themed-scrollbars-wrapper > div {
+        background: #0B1F3A !important;
+        background-color: #0B1F3A !important;
+        background-image: none !important;
+    }
 
     &__active {
+        background: #034CAB !important;
         background-color: #034CAB !important;
         color: #FFFFFF !important;
     }
 
     &__active-line {
+        background: #FF0000 !important;
         background-color: #FF0000 !important;
     }
 
-    &__tab {
-        background-color: #0B1F3A !important;
+    &__item {
+        color: #FFFFFF !important;
+
+        &:not(.dc-tabs__active) {
+            color: #FFFFFF !important;
+            background: #0B1F3A !important;
+        }
     }
 
-    &__tab-icon,
+    &__item__icon,
     svg {
         width: 28px !important;
         height: 28px !important;
@@ -27,10 +47,10 @@
     }
 }
 
-.main__container .dc-tabs__active,
-.main__container .dc-tabs__active * {
-    background-color: #034CAB !important;
-    color: #FFFFFF !important;
+/* Prevent the tab-edge shadows from reintroducing the theme background. */
+.main__container .tabs-shadow {
+    background: #0B1F3A !important;
+    background-image: none !important;
 }
 
 .load-and-run,
