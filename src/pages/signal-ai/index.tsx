@@ -42,13 +42,61 @@ const SignalAI = () => {
             const leftSignal = scan_type === 'even_odd' ? 'EVEN' : `UNDER ${barrier + 1}`;
             const rightSignal = scan_type === 'even_odd' ? 'ODD' : `OVER ${barrier}`;
             [leftSignal, rightSignal].forEach(signal => {
+                const isEvenOdd = scan_type === 'even_odd';
+                const belongs = (digit: number) => isEvenOdd ? (signal === 'EVEN' ? digit % 2 === 0 : digit % 2 !== 0) : (signal === leftSignal ? digit <= barrier : digit > barrier);
                 const sides = WINDOWS.map(({ size, weight }) => {
-                    const sample = digits.slice(-size); const count = sample.filter(d => scan_type === 'even_odd' ? (signal === 'EVEN' ? d % 2 === 0 : d % 2 !== 0) : (signal === leftSignal ? d <= barrier : d > barrier)).length;
+                    const sample = digits.slice(-size);
+                    const count = sample.filter(belongs).length;
                     return { percentage: count / sample.length * 100, winner: count * 2 >= sample.length, weight };
                 });
                 const agreement = sides.filter(side => side.winner).length;
-                const strength = sides.reduce((total, side) => total + side.percentage * side.weight, 0);
-                const confidence = Math.min(100, Number((strength * 0.7 + (agreement / 4) * 100 * 0.3).toFixed(1)));
+                const frequency = sides.reduce((total, side) => total + side.percentage * side.weight, 0);
+                if (!isEvenOdd) {
+                    const confidence = Math.min(100, Number((frequency * 0.7 + (agreement / 4) * 100 * 0.3).toFixed(1)));
+                    if (agreement >= 3 && frequency >= MIN_STRENGTH) candidates.push({ market: market.symbol, display_name: market.display_name, signal, confidence, strength: Number(frequency.toFixed(1)), agreement, sample: digits.length, last_digit: digits[digits.length - 1] });
+                    return;
+                }
+
+                // EVEN/ODD multi-factor analysis: frequency, current streak, reversal, runs, momentum, distribution and recent behaviour.
+                const parity = digits.map(d => d % 2 === 0 ? 'EVEN' : 'ODD');
+                const currentParity = parity[parity.length - 1];
+                let currentStreak = 1;
+                for (let i = parity.length - 2; i >= 0 && parity[i] === currentParity; i -= 1) currentStreak += 1;
+                const opposite = signal === 'EVEN' ? 'ODD' : 'EVEN';
+                const recentParity = parity.slice(-30);
+                let consecutiveRuns = 0;
+                for (let i = 1; i < recentParity.length; i += 1) if (recentParity[i] === recentParity[i - 1]) consecutiveRuns += 1;
+                const runIntensity = Math.min(100, currentStreak / Math.max(1, Math.min(12, recentParity.length)) * 100);
+                const streakReversal = currentStreak >= 3 && signal === opposite ? Math.min(100, 45 + currentStreak * 8) : 0;
+                const continuation = currentStreak >= 2 && signal === currentParity ? Math.min(100, 35 + currentStreak * 10) : 0;
+                const runScore = signal === currentParity ? (continuation * 0.7 + (100 - runIntensity) * 0.3) : streakReversal;
+
+                const longWindow = sides[0].percentage;
+                const shortWindow = sides[sides.length - 1].percentage;
+                const momentum = Math.max(0, Math.min(100, 50 + (shortWindow - longWindow) * 4));
+                const momentumScore = signal === currentParity ? momentum : 100 - momentum;
+                const sharpDisagreement = Math.abs(shortWindow - longWindow);
+                const disagreementPenalty = sharpDisagreement > 18 && ((shortWindow >= 50) !== (longWindow >= 50)) ? Math.min(20, sharpDisagreement / 2) : 0;
+
+                const digitCounts = Array.from({ length: 10 }, (_, digit) => digits.filter(d => d === digit).length);
+                const mostDigits = digitCounts.map((count, digit) => ({ digit, count })).sort((a, b) => b.count - a.count).slice(0, 3);
+                const dominantShare = mostDigits.reduce((total, item) => total + item.count, 0) / digits.length * 100;
+                const dominantParityShare = mostDigits.filter(item => item.digit % 2 === (signal === 'EVEN' ? 0 : 1)).reduce((total, item) => total + item.count, 0) / Math.max(1, mostDigits.reduce((total, item) => total + item.count, 0)) * 100;
+                const distributionScore = Math.min(100, frequency * 0.6 + dominantParityShare * 0.4 + Math.min(10, dominantShare / 3));
+
+                const postStreakSample = parity.slice(-Math.min(100, parity.length));
+                let afterStreakHits = 0; let afterStreakTotal = 0;
+                for (let i = 3; i < postStreakSample.length; i += 1) {
+                    if (postStreakSample[i - 1] !== postStreakSample[i - 2] && postStreakSample[i - 2] === postStreakSample[i - 3]) {
+                        afterStreakTotal += 1;
+                        if (postStreakSample[i] === signal) afterStreakHits += 1;
+                    }
+                }
+                const postStreakScore = afterStreakTotal ? afterStreakHits / afterStreakTotal * 100 : 50;
+
+                const rawStrength = frequency * 0.38 + (agreement / 4 * 100) * 0.16 + momentumScore * 0.12 + runScore * 0.12 + distributionScore * 0.12 + postStreakScore * 0.10 - disagreementPenalty;
+                const strength = Math.max(0, Math.min(100, rawStrength));
+                const confidence = Math.max(0, Math.min(100, Number((strength * 0.82 + agreement / 4 * 18).toFixed(1))));
                 if (agreement >= 3 && strength >= MIN_STRENGTH) candidates.push({ market: market.symbol, display_name: market.display_name, signal, confidence, strength: Number(strength.toFixed(1)), agreement, sample: digits.length, last_digit: digits[digits.length - 1] });
             });
         });
