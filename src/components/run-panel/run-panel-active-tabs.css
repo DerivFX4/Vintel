@@ -1,13 +1,21 @@
-/* VintelFX reports panel: active Summary / Transactions / Journal tab only */
-.run-panel .dc-tabs__item.dc-tabs__active,
+/* VintelFX reports panel: active Summary / Transactions / Journal tab only.
+   Match the VintelFX Log in / PAT Login / Sign up button treatment. */
 .run-panel .dc-tabs__active {
-    background: linear-gradient(135deg, #1f3f7a 0%, #315fae 100%) !important;
+    background: linear-gradient(135deg, #18345f 0%, #244a82 55%, #3566a8 100%) !important;
     color: #ffffff !important;
+    border: 1px solid #234a84 !important;
     border-radius: 4px 4px 0 0;
-    box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.22);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 1px 2px rgba(16, 40, 82, 0.22);
+    font-weight: 700;
 }
 
-.run-panel .dc-tabs__item.dc-tabs__active *,
-.run-panel .dc-tabs__active * {
+.run-panel .dc-tabs__active *,
+.run-panel .dc-tabs__active::before,
+.run-panel .dc-tabs__active::after {
     color: #ffffff !important;
+}
+
+/* Keep inactive Summary / Transactions / Journal tabs in their original default appearance. */
+.run-panel .dc-tabs__item:not(.dc-tabs__active) {
+    background: transparent !important;
 }
