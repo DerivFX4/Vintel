@@ -1,36 +1,31 @@
-/* Shared VintelFX tab branding. Loaded by the main tab tree so current and future tabs inherit it. */
+/* Shared VintelFX tab branding. */
 .main__container .main__tabs {
     .dc-tabs__list,
     .dc-tabs__list--header,
     .dc-tabs__list--header--main__tabs {
-        background: #000080 !important;
-        background-color: #000080 !important;
+        background: #0B1F3A !important;
+        background-color: #0B1F3A !important;
     }
 
     .dc-tabs__item {
-        background: #000080 !important;
-        background-color: #000080 !important;
+        background: #0B1F3A !important;
+        background-color: #0B1F3A !important;
         color: #ffffff !important;
 
-        &,
-        & *,
-        span {
-            color: #ffffff !important;
+        svg {
+            width: 28px !important;
+            height: 28px !important;
+            color: #ff0000 !important;
+            fill: #ff0000 !important;
         }
     }
 
     .dc-tabs__active,
     .dc-tabs__item.dc-tabs__active,
     .dc-tabs__item--active {
-        background: #87ceeb !important;
-        background-color: #87ceeb !important;
+        background: #034cab !important;
+        background-color: #034cab !important;
         color: #ffffff !important;
-
-        &,
-        & *,
-        span {
-            color: #ffffff !important;
-        }
     }
 
     .dc-tabs__active-line {
