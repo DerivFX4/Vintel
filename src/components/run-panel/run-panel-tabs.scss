@@ -15,22 +15,18 @@
 }
 
 /* Inactive Summary / Transactions / Journal tabs only. */
-#db-run-panel-tab__summary,
-#db-run-panel-tab__transactions,
-#db-run-panel-tab__journal {
+.dc-tabs__item:not(.dc-tabs__active)#db-run-panel-tab__summary,
+.dc-tabs__item:not(.dc-tabs__active)#db-run-panel-tab__transactions,
+.dc-tabs__item:not(.dc-tabs__active)#db-run-panel-tab__journal {
     background: #0b1f3a;
-    color: #ffffff;
+    color: #ffffff !important;
 }
 
-#db-run-panel-tab__summary:not(.active),
-#db-run-panel-tab__transactions:not(.active),
-#db-run-panel-tab__journal:not(.active) {
-    background: #0b1f3a;
-    color: #ffffff;
-}
-
-#db-run-panel-tab__summary label,
-#db-run-panel-tab__transactions label,
-#db-run-panel-tab__journal label {
+.dc-tabs__item:not(.dc-tabs__active)#db-run-panel-tab__summary .run-panel__tab-label,
+.dc-tabs__item:not(.dc-tabs__active)#db-run-panel-tab__transactions .run-panel__tab-label,
+.dc-tabs__item:not(.dc-tabs__active)#db-run-panel-tab__journal .run-panel__tab-label,
+.dc-tabs__item:not(.dc-tabs__active)#db-run-panel-tab__summary .run-panel__tab-icon,
+.dc-tabs__item:not(.dc-tabs__active)#db-run-panel-tab__transactions .run-panel__tab-icon,
+.dc-tabs__item:not(.dc-tabs__active)#db-run-panel-tab__journal .run-panel__tab-icon {
     color: #ffffff;
 }
