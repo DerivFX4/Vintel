@@ -1,32 +1,44 @@
-/* VintelFX shared tab branding: permanent main tab colours. */
-.main__container .main__tabs.dc-tabs,
-.main__container .main__tabs .dc-tabs__list--header--main__tabs,
-.main__container .main__tabs .dc-themed-scrollbars-wrapper,
-.main__container .main__tabs .dc-tabs__list {
+/* VintelFX main tabs: navy rail with no white parent/wrapper layer. */
+.main__container > div:has(> .main__tabs),
+.main__container > div:has(> .main__tabs) > .main__tabs,
+.main__container > div:has(> .main__tabs) .dc-tabs,
+.main__container > div:has(> .main__tabs) .dc-tabs__list--header,
+.main__container > div:has(> .main__tabs) .dc-tabs__list--header--main__tabs,
+.main__container > div:has(> .main__tabs) .dc-themed-scrollbars-wrapper,
+.main__container > div:has(> .main__tabs) .dc-themed-scrollbars-wrapper > *,
+.main__container > div:has(> .main__tabs) .dc-tabs__list {
     background: #0B1F3A !important;
     background-color: #0B1F3A !important;
+    background-image: none !important;
 }
 
-.main__container .main__tabs .dc-tabs__item {
+.main__container > div:has(> .main__tabs) .dc-tabs__item {
     background: #0B1F3A !important;
     background-color: #0B1F3A !important;
     color: #ffffff !important;
 }
 
-.main__container .main__tabs .dc-tabs__item svg {
+.main__container > div:has(> .main__tabs) .dc-tabs__item svg {
     width: 28px !important;
     height: 28px !important;
     color: #ff0000 !important;
     fill: #ff0000 !important;
 }
 
-.main__container .main__tabs .dc-tabs__active,
-.main__container .main__tabs .dc-tabs__item.dc-tabs__active {
+.main__container > div:has(> .main__tabs) .dc-tabs__active,
+.main__container > div:has(> .main__tabs) .dc-tabs__item.dc-tabs__active,
+.main__container > div:has(> .main__tabs) .dc-tabs__item--active {
     background: #034cab !important;
     background-color: #034cab !important;
     color: #ffffff !important;
 }
 
-.main__container .main__tabs .dc-tabs__active-line {
+.main__container > div:has(> .main__tabs) .dc-tabs__active-line {
+    background: #ff0000 !important;
     background-color: #ff0000 !important;
+}
+
+.main__container > div:has(> .main__tabs) .tabs-shadow {
+    background: #0B1F3A !important;
+    background-image: none !important;
 }
