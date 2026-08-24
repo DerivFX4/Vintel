@@ -19,7 +19,7 @@ const RiskDisclaimer = () => {
         </button>
     ) : (
         <div className='risk-disclaimer__panel' role='dialog' aria-label='Risk Disclaimer' onClick={() => setOpen(false)}>
-            <div className='risk-disclaimer__content'>
+            <div className='risk-disclaimer__content' onClick={event => event.stopPropagation()}>
                 <div className='risk-disclaimer__heading'>
                     <strong>⚠️ Risk Disclaimer</strong>
                     <button type='button' className='risk-disclaimer__close' aria-label='Close risk disclaimer' onClick={() => setOpen(false)}>
