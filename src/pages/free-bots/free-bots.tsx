@@ -16,7 +16,7 @@ const FREE_BOTS: FreeBot[] = [
     {
         id: 'differs-ov1-ov2-recovery-even',
         name: 'Differs, Ov1, Ov2 recovery EVEN',
-        description: 'This bot trades Differs, Over 1, Over 2, and Over 3 repetitively on different Volatility Indices. After any loss, it enters EVEN recovery with Martingale ×2. Default stake $0.35 · TP $5 · SL $20.',
+        description: 'Sequence: Differs (0) → Over 1 → Over 2. After a loss, recovery trades EVEN repeatedly with Martingale ×2 until a recovery win, then the bot continues to the next sequence step. After Over 2 wins, the configured Volatility market can change and the sequence restarts at Differs (0). Default stake $0.35 · TP $5 · SL $20.',
         badge: 'NEW',
         status: 'Automated bot',
         xml_url: 'https://raw.githubusercontent.com/DerivFX4/Vintel/master/src/xml/Differs%20Ov1%20Ov2%20recovery%20EVEN.xml',
