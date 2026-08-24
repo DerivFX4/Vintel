@@ -86,17 +86,17 @@ export default class QuickStrategyStore implements IQuickStrategyStore {
         // template instead of directly executing its earlier malformed custom XML.
         // action: LOAD deliberately prevents automatic trading.
         if (name === 'Under 7 Recovery EVEN') {
-            // Use the known-good Quick Strategy XML path. The custom sequence/recovery
-            // is configured by the generated bot, avoiding direct malformed XML injection.
+            // Validated Quick Strategy generation: Digits → Over/Under → Under 7.
+            // Load only; the bot does not start trading until the user runs it.
             const form_data: TFormData = {
                 ...this.form_data,
-                symbol: '1HZ10V',
+                symbol: 'R_50',
                 tradetype: 'overunder',
-                type: 'DIGITDIFF',
-                last_digit_prediction: 0,
-                stake: 0.35,
+                type: 'DIGITUNDER',
+                last_digit_prediction: 7,
+                stake: 0.5,
                 profit: 5,
-                loss: 20,
+                loss: 10,
                 size: 2,
                 duration: 1,
                 durationtype: 't',
