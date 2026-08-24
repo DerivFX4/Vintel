@@ -1,35 +1,35 @@
-/* Shared VintelFX tab branding. */
-.main__container .main__tabs {
-    .dc-tabs__list,
-    .dc-tabs__list--header,
-    .dc-tabs__list--header--main__tabs {
-        background: #0B1F3A !important;
-        background-color: #0B1F3A !important;
-    }
+/* Shared VintelFX tab branding: no white header/overlay. */
+.main__container .main__tabs.dc-tabs,
+.main__container .main__tabs .dc-tabs__list--header,
+.main__container .main__tabs .dc-tabs__list--header--main__tabs,
+.main__container .main__tabs .dc-themed-scrollbars-wrapper,
+.main__container .main__tabs .dc-tabs__list {
+    background: #0B1F3A !important;
+    background-color: #0B1F3A !important;
+}
 
-    .dc-tabs__item {
-        background: #0B1F3A !important;
-        background-color: #0B1F3A !important;
-        color: #ffffff !important;
+.main__container .main__tabs .dc-tabs__item {
+    background: #0B1F3A !important;
+    background-color: #0B1F3A !important;
+    color: #ffffff !important;
 
-        svg {
-            width: 28px !important;
-            height: 28px !important;
-            color: #ff0000 !important;
-            fill: #ff0000 !important;
-        }
+    svg {
+        width: 28px !important;
+        height: 28px !important;
+        color: #ff0000 !important;
+        fill: #ff0000 !important;
     }
+}
 
-    .dc-tabs__active,
-    .dc-tabs__item.dc-tabs__active,
-    .dc-tabs__item--active {
-        background: #034cab !important;
-        background-color: #034cab !important;
-        color: #ffffff !important;
-    }
+.main__container .main__tabs .dc-tabs__active,
+.main__container .main__tabs .dc-tabs__item.dc-tabs__active,
+.main__container .main__tabs .dc-tabs__item--active {
+    background: #034cab !important;
+    background-color: #034cab !important;
+    color: #ffffff !important;
+}
 
-    .dc-tabs__active-line {
-        background: #ff0000 !important;
-        background-color: #ff0000 !important;
-    }
+.main__container .main__tabs .dc-tabs__active-line {
+    background: #ff0000 !important;
+    background-color: #ff0000 !important;
 }
