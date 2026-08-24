@@ -57,57 +57,31 @@ const SignalAI = () => {
                     return;
                 }
 
-                // EVEN/ODD: conservative multi-factor scoring. Historical features confirm direction,
-                // but a weak edge returns no candidate so the scanner can try another cycle.
-                const parity = digits.map(d => d % 2 === 0 ? 'EVEN' : 'ODD');
-                const scoreSignal = (side: 'EVEN' | 'ODD') => {
-                    const sideBelongs = (digit: number) => side === 'EVEN' ? digit % 2 === 0 : digit % 2 !== 0;
-                    const sideWindows = WINDOWS.map(({ size, weight }) => {
-                        const sample = digits.slice(-size);
-                        const percentage = sample.filter(sideBelongs).length / sample.length * 100;
-                        return { percentage, weight };
-                    });
-                    const sideFrequency = sideWindows.reduce((total, item) => total + item.percentage * item.weight, 0);
-                    const long = sideWindows[0].percentage;
-                    const recent = sideWindows[sideWindows.length - 1].percentage;
-                    const momentum = Math.max(0, Math.min(100, 50 + (recent - long) * 2.5));
+                // EVEN/ODD strict frequency model: no streak, reversal or dominant-digit prediction.
+                // A market is returned only when the historical windows show a clear and consistent imbalance.
+                const sidePercentages = sides.map(side => side.percentage);
+                const minPercentage = Math.min(...sidePercentages);
+                const maxPercentage = Math.max(...sidePercentages);
+                const recentPercentage = sidePercentages[sidePercentages.length - 1];
+                const longPercentage = sidePercentages[0];
+                const edgeOverFair = frequency - 50;
+                const windowRange = maxPercentage - minPercentage;
+                const recentLongGap = Math.abs(recentPercentage - longPercentage);
 
-                    let currentStreak = 1;
-                    const currentParity = parity[parity.length - 1];
-                    for (let i = parity.length - 2; i >= 0 && parity[i] === currentParity; i -= 1) currentStreak += 1;
+                // The candidate must be consistently above fair parity, not merely the larger side.
+                if (
+                    agreement < 4 ||
+                    edgeOverFair < 5 ||
+                    minPercentage < 53 ||
+                    recentPercentage < 55 ||
+                    recentLongGap > 8 ||
+                    windowRange > 10
+                ) return;
 
-                    // Streak information is deliberately capped so it cannot dominate a trade direction.
-                    const continuation = side === currentParity && currentStreak >= 2 ? Math.min(12, currentStreak * 2) : 0;
-                    const reversal = side !== currentParity && currentStreak >= 4 ? Math.min(8, (currentStreak - 3) * 2) : 0;
-
-                    // Dominant digits are only measured in recent context, not the full 500-tick history.
-                    const recentDigits = digits.slice(-60);
-                    const counts = Array.from({ length: 10 }, (_, digit) => recentDigits.filter(d => d === digit).length);
-                    const top = counts.map((count, digit) => ({ digit, count })).sort((x, y) => y.count - x.count).slice(0, 3);
-                    const topParity = top.reduce((total, item) => total + (sideBelongs(item.digit) ? item.count : -item.count), 0);
-                    const distribution = Math.max(-10, Math.min(10, topParity / Math.max(1, recentDigits.length) * 100));
-
-                    const agreementScore = sideWindows.filter(item => item.percentage >= 50).length / 4 * 100;
-                    const disagreement = Math.abs(recent - long);
-                    const conflictPenalty = disagreement > 12 && ((recent >= 50) !== (long >= 50)) ? Math.min(18, disagreement) : 0;
-                    const raw = (sideFrequency - 50) * 1.35 + (agreementScore - 50) * 0.18 + (momentum - 50) * 0.18 + continuation + reversal + distribution - conflictPenalty;
-                    return { raw, frequency: sideFrequency, recent, long, agreement: sideWindows.filter(item => item.percentage >= 50).length };
-                };
-
-                const evenMetrics = scoreSignal('EVEN');
-                const oddMetrics = scoreSignal('ODD');
-                const metrics = signal === 'EVEN' ? evenMetrics : oddMetrics;
-                const oppositeMetrics = signal === 'EVEN' ? oddMetrics : evenMetrics;
-                const edge = metrics.raw - oppositeMetrics.raw;
-                const recentEdge = Math.abs(metrics.recent - oppositeMetrics.recent);
-                const agreementCount = metrics.agreement;
-
-                // Do not trade marginal differences. No candidate means scan another cycle.
-                if (agreementCount < 3 || edge < 6 || metrics.frequency < 51.5 || recentEdge < 4) return;
-
-                const strength = Math.max(0, Math.min(100, 50 + metrics.raw));
-                const confidence = Math.max(0, Math.min(100, Number((50 + edge * 2.2 + (agreementCount - 2) * 4).toFixed(1))));
-                candidates.push({ market: market.symbol, display_name: market.display_name, signal, confidence, strength: Number(strength.toFixed(1)), agreement: agreementCount, sample: digits.length, last_digit: digits[digits.length - 1] });
+                const stability = Math.max(0, Math.min(100, 100 - windowRange * 5));
+                const strength = Math.min(100, frequency * 0.72 + stability * 0.28);
+                const confidence = Math.min(100, Number((50 + edgeOverFair * 4 + (stability - 70) * 0.12).toFixed(1)));
+                candidates.push({ market: market.symbol, display_name: market.display_name, signal, confidence, strength: Number(strength.toFixed(1)), agreement, sample: digits.length, last_digit: digits[digits.length - 1] });
             });
         });
         candidates.sort((a, b) => b.confidence - a.confidence || b.strength - a.strength);
