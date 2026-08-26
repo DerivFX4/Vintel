@@ -18,44 +18,31 @@
 <title>VintelFX</title>
 <style>
 :root { font-size: 62.5%; }
-#vintelfx-site-loader { position: fixed; inset: 0; z-index: 2147483647; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #071426; color: #e7edf6; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-#vintelfx-site-loader::before { content: ''; position: absolute; inset: -6%; background: radial-gradient(circle at 68% 32%, rgba(33, 167, 217, .42), transparent 27%), radial-gradient(circle at 18% 78%, rgba(85, 54, 161, .42), transparent 30%), linear-gradient(135deg, #061326 0%, #123f62 42%, #071221 100%); filter: blur(12px); transform: scale(1.08); }
-#vintelfx-site-loader::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(2, 8, 19, .5), transparent 46%, rgba(2, 8, 19, .25)), radial-gradient(circle at 20% 20%, rgba(255,255,255,.06) 1px, transparent 1.5px); background-size: auto, 24px 24px; pointer-events: none; }
-.vintelfx-loader-card { position: relative; z-index: 1; width: min(84vw, 64rem); min-height: 36rem; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3.6rem 3.2rem 7rem; border: 1px solid rgba(255,255,255,.14); border-radius: 1.4rem; background: linear-gradient(135deg, rgba(35,48,69,.91), rgba(20,29,47,.92)); box-shadow: 0 2.4rem 6rem rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05); backdrop-filter: blur(18px); }
-.vintelfx-loader-mark { width: 8rem; height: 8rem; display: grid; place-items: center; margin-bottom: 2.2rem; border: 1px solid rgba(78, 145, 231, .72); border-radius: 2rem; background: linear-gradient(135deg, rgba(21,50,88,.98), rgba(13,31,59,.98)); color: #d8e2ef; font-size: 2.8rem; font-weight: 800; letter-spacing: .04em; box-shadow: 1.6rem 1.6rem 0 -1.5rem rgba(41,105,191,.45), -1.1rem -1.1rem 0 -1.05rem rgba(41,105,191,.24); }
-.vintelfx-loader-title { margin: 0; font-size: clamp(2.2rem, 6vw, 3.4rem); line-height: 1.15; letter-spacing: .12em; font-weight: 800; }
-.vintelfx-loader-subtitle { margin: 1rem 0 2.2rem; font-size: 1.45rem; letter-spacing: .05em; color: #b6c0d0; }
-.vintelfx-loader-dots { display: flex; gap: 1.2rem; margin-bottom: 2.4rem; }
-.vintelfx-loader-dots span { width: 1.4rem; height: 1.4rem; border-radius: 50%; background: #4d8de4; opacity: .42; animation: vintelfx-loader-dot 1.2s ease-in-out infinite; }
-.vintelfx-loader-dots span:nth-child(2) { animation-delay: .16s; }
-.vintelfx-loader-dots span:nth-child(3) { animation-delay: .32s; }
-.vintelfx-loader-status { margin: 0; min-height: 2.2rem; font-size: 1.5rem; letter-spacing: .04em; color: #d3d9e3; }
-.vintelfx-loader-progress-wrap { position: absolute; left: 1.6rem; right: 1.6rem; bottom: 2.4rem; }
-.vintelfx-loader-track { height: .7rem; overflow: hidden; border-radius: 999px; background: rgba(214,224,237,.18); }
-.vintelfx-loader-bar { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #557fb7, #8eb0d5); transition: width .16s linear; }
-.vintelfx-loader-footer { display: flex; justify-content: space-between; margin-top: 1.2rem; font-size: 1.2rem; letter-spacing: .04em; color: #c7d0dc; }
-@keyframes vintelfx-loader-dot { 0%,100% { transform: translateY(0); opacity: .38; } 50% { transform: translateY(-.4rem); opacity: 1; } }
-@media (max-width: 480px) { .vintelfx-loader-card { width: calc(100vw - 4rem); min-height: 34rem; padding: 3rem 2rem 7rem; } .vintelfx-loader-mark { width: 7rem; height: 7rem; font-size: 2.5rem; } }
+#vintelfx-splash { position: fixed; inset: 0; z-index: 2147483647; display: grid; place-items: center; overflow: hidden; background: #071426; color: #eef4fb; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+#vintelfx-splash::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 70% 32%, rgba(24, 154, 215, .38), transparent 29%), radial-gradient(circle at 18% 78%, rgba(79, 56, 154, .35), transparent 32%), linear-gradient(135deg, #061326, #123d60 48%, #071221); filter: blur(10px); transform: scale(1.06); }
+#vintelfx-splash::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(2,8,19,.45), transparent 52%, rgba(2,8,19,.2)); pointer-events: none; }
+.vintelfx-splash-card { position: relative; z-index: 1; width: min(84vw, 64rem); min-height: 36rem; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3.6rem 3.2rem 7rem; border: 1px solid rgba(255,255,255,.14); border-radius: 1.4rem; background: linear-gradient(135deg, rgba(35,48,69,.93), rgba(20,29,47,.94)); box-shadow: 0 2.4rem 6rem rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.05); backdrop-filter: blur(18px); }
+.vintelfx-splash-mark { width: 8rem; height: 8rem; display: grid; place-items: center; margin-bottom: 2.2rem; border: 1px solid rgba(78,145,231,.72); border-radius: 2rem; background: linear-gradient(135deg, rgba(21,50,88,.98), rgba(13,31,59,.98)); color: #d8e2ef; font-size: 2.8rem; font-weight: 800; letter-spacing: .04em; box-shadow: 1.6rem 1.6rem 0 -1.5rem rgba(41,105,191,.45), -1.1rem -1.1rem 0 -1.05rem rgba(41,105,191,.24); }
+.vintelfx-splash-title { margin: 0; font-size: clamp(2.2rem, 6vw, 3.4rem); line-height: 1.15; letter-spacing: .12em; font-weight: 800; }
+.vintelfx-splash-subtitle { margin: 1rem 0 2.2rem; font-size: 1.45rem; letter-spacing: .05em; color: #b6c0d0; }
+.vintelfx-splash-dots { display: flex; gap: 1.2rem; margin-bottom: 2.4rem; }
+.vintelfx-splash-dots span { width: 1.4rem; height: 1.4rem; border-radius: 50%; background: #4d8de4; opacity: .42; animation: vintelfx-splash-dot 1.2s ease-in-out infinite; }
+.vintelfx-splash-dots span:nth-child(2) { animation-delay: .16s; }.vintelfx-splash-dots span:nth-child(3) { animation-delay: .32s; }
+.vintelfx-splash-status { margin: 0; min-height: 2.2rem; font-size: 1.5rem; letter-spacing: .04em; color: #d3d9e3; }
+.vintelfx-splash-progress { position: absolute; left: 1.6rem; right: 1.6rem; bottom: 2.4rem; }.vintelfx-splash-track { height: .7rem; overflow: hidden; border-radius: 999px; background: rgba(214,224,237,.18); }.vintelfx-splash-bar { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #557fb7, #8eb0d5); transition: width .16s linear; }.vintelfx-splash-footer { display: flex; justify-content: space-between; margin-top: 1.2rem; font-size: 1.2rem; letter-spacing: .04em; color: #c7d0dc; }
+@keyframes vintelfx-splash-dot { 0%,100% { transform: translateY(0); opacity: .38; } 50% { transform: translateY(-.4rem); opacity: 1; } }
+@media (max-width: 480px) { .vintelfx-splash-card { width: calc(100vw - 4rem); min-height: 34rem; padding: 3rem 2rem 7rem; }.vintelfx-splash-mark { width: 7rem; height: 7rem; font-size: 2.5rem; } }
 </style>
 </head>
 <body class="body theme theme--light">
-<div id="vintelfx-site-loader" aria-live="polite" aria-label="Loading VintelFX">
-  <div class="vintelfx-loader-card">
-    <div class="vintelfx-loader-mark" aria-hidden="true">VT</div>
-    <h1 class="vintelfx-loader-title">VINTELFX</h1>
-    <p class="vintelfx-loader-subtitle">Your Ultimate trusted deriv third party website</p>
-    <div class="vintelfx-loader-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-    <p class="vintelfx-loader-status" id="vintelfx-loader-status">Initializing VintelFX...</p>
-    <div class="vintelfx-loader-progress-wrap">
-      <div class="vintelfx-loader-track"><div class="vintelfx-loader-bar" id="vintelfx-loader-bar"></div></div>
-      <div class="vintelfx-loader-footer"><span id="vintelfx-loader-stage">Boot sequence</span><span id="vintelfx-loader-percent">0%</span></div>
-    </div>
+<div id="vintelfx-splash" aria-live="polite" aria-label="Loading VintelFX">
+  <div class="vintelfx-splash-card">
+    <div class="vintelfx-splash-mark" aria-hidden="true">VT</div><h1 class="vintelfx-splash-title">VINTELFX</h1><p class="vintelfx-splash-subtitle">Your Ultimate trusted deriv third party website</p><div class="vintelfx-splash-dots" aria-hidden="true"><span></span><span></span><span></span></div><p class="vintelfx-splash-status" id="vintelfx-splash-status">Initializing VintelFX...</p>
+    <div class="vintelfx-splash-progress"><div class="vintelfx-splash-track"><div class="vintelfx-splash-bar" id="vintelfx-splash-bar"></div></div><div class="vintelfx-splash-footer"><span id="vintelfx-splash-stage">Boot sequence</span><span id="vintelfx-splash-percent">0%</span></div></div>
   </div>
 </div>
-<div id="modal_root" class="modal-root"></div>
-<div id="popup_root" class="popup-root"></div>
-<div id="root"></div>
-<script>(function(){const loader=document.getElementById('vintelfx-site-loader');const bar=document.getElementById('vintelfx-loader-bar');const percent=document.getElementById('vintelfx-loader-percent');const stage=document.getElementById('vintelfx-loader-stage');const status=document.getElementById('vintelfx-loader-status');const started=Date.now();const minDuration=7000;const stages=['Boot sequence','Loading workspace','Preparing dashboard','Starting VintelFX'];let value=0;let finished=false;const tick=()=>{if(finished)return;const elapsed=Date.now()-started;value=Math.min(96,Math.floor((elapsed/minDuration)*96));bar.style.width=value+'%';percent.textContent=value+'%';const index=Math.min(stages.length-1,Math.floor((value/100)*stages.length));stage.textContent=stages[index];status.textContent=value<35?'Initializing VintelFX...':value<70?'Loading your workspace...':'Almost ready...';requestAnimationFrame(tick)};tick();window.addEventListener('load',()=>{const remaining=Math.max(0,minDuration-(Date.now()-started));setTimeout(()=>{finished=true;bar.style.width='100%';percent.textContent='100%';stage.textContent='Ready';status.textContent='Welcome to VintelFX';setTimeout(()=>{loader.style.transition='opacity .45s ease, visibility .45s ease';loader.style.opacity='0';loader.style.visibility='hidden';setTimeout(()=>loader.remove(),500)},350)},remaining)})})();</script>
+<div id="modal_root" class="modal-root"></div><div id="popup_root" class="popup-root"></div><div id="root"></div>
+<script>(function(){const splash=document.getElementById('vintelfx-splash'),bar=document.getElementById('vintelfx-splash-bar'),percent=document.getElementById('vintelfx-splash-percent'),stage=document.getElementById('vintelfx-splash-stage'),status=document.getElementById('vintelfx-splash-status'),started=Date.now(),minimum=7000,stages=['Boot sequence','Loading workspace','Preparing dashboard','Starting VintelFX'];let done=false;function tick(){if(done)return;const p=Math.min(96,Math.floor(((Date.now()-started)/minimum)*96));bar.style.width=p+'%';percent.textContent=p+'%';stage.textContent=stages[Math.min(stages.length-1,Math.floor(p/25))];status.textContent=p<35?'Initializing VintelFX...':p<70?'Loading your workspace...':'Almost ready...';requestAnimationFrame(tick)}tick();window.addEventListener('load',function(){setTimeout(function(){done=true;bar.style.width='100%';percent.textContent='100%';stage.textContent='Ready';status.textContent='Welcome to VintelFX';setTimeout(function(){splash.style.transition='opacity .45s ease';splash.style.opacity='0';setTimeout(function(){splash.remove()},450)},300)},Math.max(0,minimum-(Date.now()-started)))})})();</script>
 <script type="text/javascript" defer>window.__lc=window.__lc||{};window.__lc.license=12049137;window.__lc.asyncInit=true;(function(n,t,c){function i(n){return e._h?e._h.apply(null,n):e._q.push(n)}var e={_q:[],_h:null,_v:'2.0',on:function(){i(['on',c.call(arguments)])},once:function(){i(['once',c.call(arguments)])},off:function(){i(['off',c.call(arguments)])},get:function(){if(!e._h)throw new Error('LiveChatWidget getters cannot be used before load.');return i(['get',c.call(arguments)])},call:function(){i(['call',c.call(arguments)])},init:function(){setTimeout(()=>{var n=t.createElement('script');n.async=!0;n.type='text/javascript';n.src='https://cdn.livechatinc.com/tracking.js';t.head.appendChild(n)},3000)}};(!n.__lc.asyncInit&&e.init(),n.LiveChatWidget=n.LiveChatWidget||e)})(window,document,[].slice);</script>
 </body>
 </html>
