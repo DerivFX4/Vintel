@@ -1,187 +1,361 @@
-# Trading Bot Template
+# VintelFX
 
-> A white-label starter for building and deploying your own visual trading bot platform on top of the Deriv trading API. Fork it, brand it, deploy it.
+> VintelFX is a branded visual trading bot platform built on React and the Deriv trading ecosystem. It provides a dashboard, visual bot-building tools, market charts, account connectivity, signal analysis, and configurable trading workflows.
 
-![Prerequisite](https://img.shields.io/badge/node-22.x%20%7C%2024.x-blue.svg)
-![Prerequisite](https://img.shields.io/badge/npm-9%2B-blue.svg)
+![Node.js](https://img.shields.io/badge/node-22.x%20%7C%2024.x-blue.svg)
+![npm](https://img.shields.io/badge/npm-9%2B-blue.svg)
 ![Build](https://img.shields.io/badge/build-RSBuild-green.svg)
 ![Framework](https://img.shields.io/badge/framework-React%2018-blue.svg)
 
-This repository is a **template**, not a finished product. It is intended to be forked, customized with your own brand, and deployed to your own domain. The trading engine, OAuth flow, and WebSocket integration all point at Deriv's infrastructure out of the box — everything else (branding, theming, menu, logo, fonts, analytics, error reporting) is yours to configure.
+---
+
+## Repository
+
+- **Repository:** [DerivFX4/Vintel](https://github.com/DerivFX4/Vintel)
+- **Default branch:** `master`
+- **Application:** VintelFX
+- **Website:** `vintelfx.site`
+- **Source control:** GitHub
+- **Deployment:** Vercel
+
+This repository contains the VintelFX application source code, static assets, serverless API routes, configuration, testing setup, and project documentation.
+
+> **Important:** VintelFX is a third-party application and is not affiliated with or endorsed by Deriv. Users remain responsible for their own account access, trading decisions, and configuration.
 
 ---
 
-## Table of Contents
+## What the Project Contains
 
-- [What You Get](#what-you-get)
-- [Who This Is For](#who-this-is-for)
-- [Quick Start (Fork → Brand → Run)](#quick-start-fork--brand--run)
-- [Prerequisites](#prerequisites)
-- [Documentation](#documentation)
-- [Project Layout](#project-layout)
-- [Configuration at a Glance](#configuration-at-a-glance)
-- [Things You Must Not Change](#things-you-must-not-change)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-- [License](#license)
+### Core application
+
+- **Dashboard** — account information, activity, performance, and trading controls.
+- **Bot Builder** — visual Blockly-based strategy creation and bot configuration.
+- **Charts** — market and indicator visualisation.
+- **Trading integration** — bot runtime and real-time trading communication.
+- **Account connectivity** — authentication and authenticated account access.
+- **Signal scanning** — server-side Signal AI scanning functionality.
+- **Branding system** — central configuration for VintelFX identity and visual settings.
 
 ---
 
-## What You Get
+## Project Structure
 
-- **Visual Bot Builder** — Drag-and-drop strategy builder powered by Blockly, with a library of pre-built trading blocks.
-- **Integrated Charts** — SmartCharts (TradingView-style) with the standard set of technical indicators (SMA, EMA, Bollinger Bands, MACD, RSI).
-- **Dashboard** — Bot performance, recent activity, and quick actions.
-- **OAuth 2.0 with PKCE** — Production-ready authentication flow against Deriv's OAuth server.
-- **Authenticated WebSocket connection** — Real-time market data, balance, trade execution, and account switching via the DerivWS API.
-- **White-label configuration** — A single `brand.config.json` drives your colors, typography, logo, domain, menus, and theme behavior.
-- **Centralized error logging** — `ErrorLogger` utility with a pluggable interface for Sentry, TrackJS, or any other reporting service.
-- **Optional monitoring stack** — Guides for re-enabling Datadog RUM, TrackJS, Rudderstack analytics, and Growthbook feature flags (removed from the base to keep the bundle lean).
-- **Fast builds** — RSBuild for sub-second dev server startup and optimized production bundles.
-
-## Who This Is For
-
-Developers who want to ship a branded derivatives trading bot application without building the Blockly integration, bot runtime, OAuth flow, or WebSocket layer from scratch. You are expected to be comfortable with:
-
-- React, TypeScript, and modern JavaScript tooling
-- Deploying a static SPA to your own infrastructure (Vercel, Netlify, Cloudflare Pages, S3+CloudFront, etc.)
-- Registering an OAuth app with Deriv to get a `CLIENT_ID` for your domain
-
----
-
-## Quick Start (Fork → Brand → Run)
-
-```bash
-# 1. Fork this repo on GitHub, then clone your fork
-git clone https://github.com/<your-org>/<your-fork>.git
-cd <your-fork>
-
-# 2. Use Node.js 24 (recommended; Node.js 22 is also supported)
-nvm use # Optional; selects Node.js 24 from .nvmrc
-npm install
-
-# 3. Configure your brand
-#    Edit brand.config.json: brand_name, domain, colors, logo, typography
-#    See user-guide/03-white-labeling.md for the full reference
-
-# 4. Generate brand CSS (validates your config, writes src/styles/_themes.scss)
-npm run generate:brand-css
-
-# 5. Add your OAuth credentials
-#    Create .env and set CLIENT_ID to the OAuth client ID you registered with Deriv
-echo "CLIENT_ID=your_deriv_oauth_client_id" > .env
-
-# 6. Start the dev server
-npm start
-#    → https://localhost:8443
+```text
+Vintel/
+├── .github/                         # GitHub configuration and automation
+│   ├── workflows/                   # CI and workflow definitions
+│   ├── CODEOWNERS
+│   ├── dependabot.yml
+│   └── pull_request_template.md
+│
+├── .husky/                          # Git hooks
+├── __mocks__/                       # Test mocks
+│
+├── api/                             # Serverless/backend API routes
+│   ├── oauth/
+│   │   └── token.js                 # OAuth token handling endpoint
+│   └── signal-scan.js               # Signal scanning API
+│
+├── public/                          # Static public files
+│   └── assets/
+│       └── icons/                   # Application icons
+│
+├── src/                             # Main application source code
+│   ├── app/                         # Application-level logic
+│   ├── components/                  # Reusable UI components
+│   │   └── layout/                  # Layout components
+│   ├── pages/                       # Application pages
+│   ├── stores/                      # Application state
+│   ├── services/                    # API and application services
+│   ├── hooks/                       # React hooks
+│   ├── styles/                      # Application styling and themes
+│   └── external/
+│       ├── bot-skeleton/            # Bot runtime and Blockly integration
+│       └── indicators/              # Technical indicators
+│
+├── user-guide/                      # Project documentation
+├── scripts/                         # Build and utility scripts
+│
+├── brand.config.json                # VintelFX branding/configuration
+├── index.html                       # Application HTML entry
+├── package.json                     # Dependencies and npm scripts
+├── package-lock.json                # Locked dependency versions
+├── babel.config.js                  # Babel configuration
+├── jest.config.ts                   # Jest configuration
+├── jest.setup.ts                    # Jest test setup
+├── README.md                        # Repository documentation
+├── LICENSE                          # License information
+└── configuration files              # ESLint, Prettier, Stylelint, etc.
 ```
 
-Then walk through the full setup in [Getting Started](./user-guide/01-getting-started.md).
+---
+
+## Key Files and Directories
+
+| Location | Purpose |
+| --- | --- |
+| `src/` | Main VintelFX frontend application |
+| `src/app/` | Application-level startup and logic |
+| `src/components/` | Reusable interface components |
+| `src/pages/` | Main application pages and views |
+| `src/stores/` | Application state management |
+| `src/services/` | API, platform, and application services |
+| `src/hooks/` | Reusable React hooks |
+| `src/external/bot-skeleton/` | Trading bot runtime and Blockly functionality |
+| `src/external/indicators/` | Technical analysis indicators |
+| `api/` | Serverless API functionality |
+| `api/oauth/token.js` | OAuth token handling |
+| `api/signal-scan.js` | Signal scanning logic |
+| `public/` | Static assets served by the application |
+| `brand.config.json` | Branding and platform configuration |
+| `package.json` | Dependencies and project commands |
+| `scripts/` | Utility and build scripts |
+| `user-guide/` | Developer and project documentation |
 
 ---
 
-## Prerequisites
+## Technology Stack
 
-| Requirement | Version                             | Why                                                      |
-| ----------- | ----------------------------------- | -------------------------------------------------------- |
-| Node.js     | 22.x or 24.x (24.x recommended)     | Declared in `package.json`; CI-tested on both versions   |
-| npm         | 9+                                  | Package manager                                          |
-| Git         | 2.30+                               | Version control                                          |
-| Browser     | Chrome, Firefox, or Safari (latest) | Dev server runs on HTTPS; WebCrypto is required for PKCE |
+The repository is built around:
 
-You will also need a **Deriv OAuth client ID** registered against the domain you intend to deploy to. Without it, login will fail — the authentication flow and the WebSocket handshake both depend on it.
+- **React 18** — application UI
+- **TypeScript / JavaScript** — application development
+- **RSBuild** — development and production builds
+- **Blockly** — visual bot-building interface
+- **Jest** — testing
+- **ESLint / Prettier / Stylelint** — code quality and formatting
+- **GitHub** — source control
+- **Vercel** — deployment and hosting
 
----
-
-## Documentation
-
-All the setup, configuration, and architectural context lives under [`user-guide/`](./user-guide). Start here:
-
-| #   | Guide                                                             | What's inside                                                       |
-| --- | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
-| 01  | [Getting Started](./user-guide/01-getting-started.md)             | Prerequisites, project setup, commands, environment variables       |
-| 02  | [Architecture Overview](./user-guide/02-architecture-overview.md) | Layers, MobX stores, RxJS streams, bot engine, build system         |
-| 03  | [White Labeling](./user-guide/03-white-labeling.md)               | Branding, colors, typography, logo, menus, theme configuration      |
-| 04  | [Authentication](./user-guide/04-authentication.md)               | OAuth 2.0 with PKCE, token exchange, session management, logout     |
-| 05  | [WebSocket Integration](./user-guide/05-websocket-integration.md) | Connection architecture, public vs authenticated endpoints, DerivWS |
-| 06  | [Error Handling](./user-guide/06-error-handling.md)               | Centralized `ErrorLogger`, Sentry/TrackJS integration, migration    |
-| 07  | [Monitoring & Analytics](./user-guide/07-monitoring-analytics.md) | Re-enabling Datadog, TrackJS, Rudderstack, Growthbook               |
-| 08  | [Changelog](./user-guide/08-changelog.md)                         | What changed from the original Deriv Bot to this template           |
-
-New to the template? Read them in order. Just need to re-skin? Jump straight to [White Labeling](./user-guide/03-white-labeling.md).
+The trading and account integration layers communicate with the configured Deriv infrastructure and application APIs.
 
 ---
 
-## Project Layout
+## Getting Started
 
-- [`brand.config.json`](./brand.config.json) — white-label config (brand, colors, logo, domain)
-- [`src/`](./src) — application source ([`app/`](./src/app), [`pages/`](./src/pages), [`stores/`](./src/stores), [`services/`](./src/services), [`hooks/`](./src/hooks), [`components/layout/`](./src/components/layout))
-- [`src/external/bot-skeleton/`](./src/external/bot-skeleton) — bot runtime, Blockly blocks, WebSocket layer
-- [`src/external/indicators/`](./src/external/indicators) — SMA, EMA, Bollinger Bands, MACD, RSI
-- [`scripts/generate-brand-css.js`](./scripts/generate-brand-css.js) — generates `src/styles/_themes.scss` from `brand.config.json`
-- [`user-guide/`](./user-guide) — developer documentation (see above)
+### 1. Clone the repository
 
-For the layer-by-layer breakdown see [Architecture Overview](./user-guide/02-architecture-overview.md); for the full directory tree see [Getting Started — Project Structure](./user-guide/01-getting-started.md#project-structure).
+```bash
+git clone https://github.com/DerivFX4/Vintel.git
+cd Vintel
+```
+
+### 2. Use a supported Node.js version
+
+Node.js **24.x** is recommended. Node.js **22.x** is also supported.
+
+```bash
+nvm use
+```
+
+### 3. Install dependencies
+
+```bash
+npm install
+```
+
+### 4. Configure the application
+
+Review:
+
+- `brand.config.json`
+- environment variables configured in the deployment platform
+- OAuth and redirect configuration
+
+### 5. Generate brand CSS if branding changes require it
+
+```bash
+npm run generate:brand-css
+```
+
+### 6. Start development
+
+```bash
+npm start
+```
+
+### 7. Create a production build
+
+```bash
+npm run build
+```
+
+The production output is generated in:
+
+```text
+dist/
+```
 
 ---
 
-## Configuration at a Glance
+## Environment Configuration
 
-- **`brand.config.json`** drives every visual/identity knob — brand, colors, typography, logo, footer, hostnames. Edit it and run `npm run generate:brand-css`. Full reference: [White Labeling Guide](./user-guide/03-white-labeling.md).
-- **`.env`** holds secrets. `CLIENT_ID` is required for login; everything else (`APP_ID`, Google Drive, translations, monitoring credentials) is optional. Full table: [Getting Started — Environment Variables](./user-guide/01-getting-started.md#environment-variables).
-- **npm scripts** — see `package.json`. Most common: `npm start`, `npm run build`, `npm test`, `npm run generate:brand-css`. Full list: [Getting Started — Available Commands](./user-guide/01-getting-started.md#available-commands).
+Deployment secrets and sensitive configuration should be stored in the hosting platform's environment-variable settings rather than committed to the repository.
 
----
+The VintelFX deployment may use environment variables for Deriv application configuration, OAuth configuration, and related server-side functionality.
 
-## Things You Must Not Change
-
-The template relies on Deriv's infrastructure for OAuth and for the WebSocket trading API. Keep these values in `brand.config.json` pointed at Deriv — changing them will break login and all trading functionality:
-
-- `platform.auth2_url.production` → `https://auth.deriv.com/oauth2/`
-- `platform.auth2_url.staging` → `https://staging-auth.deriv.com/oauth2/`
-- `platform.derivws.url.production` → `https://api.derivws.com/trading/v1/`
-- `platform.derivws.url.staging` → `https://staging-api.derivws.com/trading/v1/`
-
-Everything else (brand name, colors, logo, fonts, your own `platform.hostname`, menus, footer toggles) is yours to change.
-
-See [White Labeling — Configuration Constraints](./user-guide/03-white-labeling.md#authentication-urls) and [Changelog — Configuration Constraints](./user-guide/08-changelog.md#configuration-constraints).
+Do not commit private credentials, access tokens, client secrets, or personal account tokens to GitHub.
 
 ---
 
 ## Deployment
 
-Any static host will work — the build output in `dist/` is a plain SPA.
+VintelFX is deployed from this GitHub repository through Vercel.
 
-1. Run `npm run build` and ship the `dist/` directory.
-2. Register a Deriv OAuth client for your deployed domain and set `CLIENT_ID` in your host's environment variables.
-3. Set `platform.hostname.production.com` in `brand.config.json` to your deployed hostname (no protocol, no trailing slash) so `isProduction()` detects the right environment and connects to the production WebSocket. The hostname you put here must match the redirect URI you register with Deriv.
-4. Make sure your host serves `index.html` for unknown routes (SPA fallback) — OAuth redirects back to `/?code=...&state=...` and the `App` component handles the callback inline.
+### Standard deployment flow
 
-### Example: deploying to Vercel
+```text
+GitHub commit
+      ↓
+Repository branch
+      ↓
+Vercel detects the update
+      ↓
+Build runs
+      ↓
+Application deploys
+```
 
-This is one concrete path that works — any static host (Netlify, Cloudflare Pages, S3+CloudFront, your own infra) will do, but the shape of the steps is the same. Adapt as needed for your host.
+The production build output is:
 
-1. **Fork & clone** — fork this repo to your GitHub org (e.g. `your-org/your-fork`) and clone locally.
-2. **Configure locally** — edit `brand.config.json` (brand, colors, logo, and especially `platform.hostname.production.com` → the domain you'll deploy to), run `npm install` then `npm run generate:brand-css`, commit, push.
-3. **Create a Vercel project** — import your GitHub repo. **Override the Output Directory to `dist`** (Vercel's default is wrong for RSBuild). Framework preset can be left as "Other"; Vercel picks up `npm run build` automatically.
-4. **Deploy once** — let Vercel do the first deploy so you have a stable domain (e.g. `your-fork.vercel.app` or your custom domain). Login won't work yet.
-5. **Register the OAuth app with Deriv** — at [developers.deriv.com](https://developers.deriv.com/), register a new app using your deployed domain as the redirect URI (`https://your-fork.vercel.app/`), copy the **Client ID** Deriv issues.
-6. **Add env vars on Vercel** — in Project Settings → Environment Variables, add `CLIENT_ID=<the_id_from_deriv>`. Add any optional ones (`APP_ID`, Google Drive, monitoring) here too.
-7. **Redeploy** — env vars are injected at build time, so push a commit or click "Redeploy" in Vercel. Login now works.
+```text
+dist/
+```
 
-On other hosts the equivalents are: set the output/publish directory to `dist`, deploy once to get a stable URL, register that URL with Deriv, add `CLIENT_ID` to the host's environment variables, trigger a rebuild.
+A README-only change does not modify the application source code, API routes, dependencies, or runtime logic. Depending on deployment settings, the commit may trigger a new deployment, but the README itself is documentation only.
+
+### Important deployment areas
+
+Changes in these locations can affect the application:
+
+- `src/`
+- `api/`
+- `package.json`
+- `brand.config.json`
+- build configuration
+- deployment configuration
+- environment variables
+
+Changes to `README.md` are documentation changes.
+
+---
+
+## Authentication and Account Access
+
+The repository includes application support for account authentication and OAuth-related flows.
+
+Relevant areas include:
+
+```text
+api/oauth/token.js
+src/
+brand.config.json
+```
+
+OAuth credentials, redirect URLs, application IDs, and scopes must match the values configured with the relevant platform and deployment environment. The OAuth authorization-code exchange should be handled securely by server-side code where required.
+
+Never expose private credentials in client-side source code or commit them to this repository.
+
+---
+
+## Bot and Trading Architecture
+
+The visual bot system is primarily located under:
+
+```text
+src/external/bot-skeleton/
+```
+
+This area contains the bot runtime and Blockly-related functionality used by the visual bot-building experience.
+
+Technical indicators are maintained separately under:
+
+```text
+src/external/indicators/
+```
+
+These components are used by the charting and market-analysis functionality where configured.
+
+---
+
+## Signal Analysis
+
+The repository includes a server-side signal scanning route:
+
+```text
+api/signal-scan.js
+```
+
+This endpoint is responsible for application-side signal scanning functionality and should be maintained together with the corresponding frontend consumers in `src/`.
+
+---
+
+## Testing and Code Quality
+
+The repository includes configuration for testing and code quality tools.
+
+Common checks include:
+
+```bash
+npm test
+npm run test:lint
+npm run build
+```
+
+Before significant changes are merged or deployed, the application should be checked for:
+
+- successful dependency installation
+- lint errors
+- test failures
+- successful production build
+- deployment errors
+
+---
+
+## Repository Conventions
+
+Recommended commit prefixes:
+
+```text
+feat:      new functionality
+fix:       bug fix
+refactor:  internal code improvement
+test:      tests
+docs:      documentation
+chore:     maintenance
+```
+
+Keep unrelated changes separate where possible. For example, a README documentation update should not be mixed with application code changes unless both are intentionally part of the same release.
+
+---
+
+## Configuration Safety
+
+Before changing authentication, WebSocket, API, or deployment configuration, verify the relevant platform requirements and environment variables.
+
+Particular care should be taken with:
+
+- OAuth client configuration
+- redirect URLs
+- application IDs
+- production/staging endpoints
+- account tokens
+- WebSocket authentication
+- environment-variable names
+
+Incorrect values can prevent login, account loading, API access, or trading functionality.
 
 ---
 
 ## Contributing
 
-This repo is intended as a template; most users will want to maintain their own fork rather than upstream changes. That said, bug fixes and improvements that apply to every downstream fork are welcome.
-
-- Conventional commits: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`
-- Run `npm run test:lint` before pushing
-- Run `npm test` and make sure the build still passes
-
-For bot builder and Blockly block changes, look in [`src/external/bot-skeleton/scratch/blocks/`](./src/external/bot-skeleton).
+1. Create or select the correct branch.
+2. Make the required change.
+3. Test the affected functionality.
+4. Run a production build where appropriate.
+5. Commit with a clear conventional commit message.
+6. Push the change to GitHub.
+7. Confirm the deployment result.
 
 ---
 
