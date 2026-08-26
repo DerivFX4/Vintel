@@ -14,32 +14,8 @@ import AccountInfoWrapper from './account-info-wrapper';
 import './account-switcher.scss';
 import './account-balance-visuals.scss';
 
-const DemoAccountIcon = () => (
-    <svg className='acc-info__account-icon-svg' viewBox='0 0 48 48' aria-hidden='true'>
-        <circle cx='24' cy='24' r='23' fill='#7799a0' />
-        <path d='M16 12v24M16 12h8.2c6.6 0 11.8 5.2 11.8 12s-5.2 12-11.8 12H16M16 24h10.4' fill='none' stroke='#fff' strokeLinecap='round' strokeLinejoin='round' strokeWidth='4.2' />
-    </svg>
-);
-
-// Restore the original circular USD flag icon for the real account.
-const RealUsdAccountIcon = () => (
-    <svg className='acc-info__account-icon-svg' viewBox='0 0 48 48' aria-hidden='true'>
-        <defs>
-            <clipPath id='vintel-usd-flag-circle'><circle cx='24' cy='24' r='24' /></clipPath>
-        </defs>
-        <g clipPath='url(#vintel-usd-flag-circle)'>
-            <rect width='48' height='48' fill='#fff' />
-            <rect y='0' width='48' height='3.7' fill='#d61f2c' /><rect y='7.4' width='48' height='3.7' fill='#d61f2c' />
-            <rect y='14.8' width='48' height='3.7' fill='#d61f2c' /><rect y='22.2' width='48' height='3.7' fill='#d61f2c' />
-            <rect y='29.6' width='48' height='3.7' fill='#d61f2c' /><rect y='37' width='48' height='3.7' fill='#d61f2c' />
-            <rect y='44.4' width='48' height='3.6' fill='#d61f2c' /><rect width='24.5' height='25.9' fill='#173b76' />
-            {Array.from({ length: 20 }).map((_, index) => {
-                const row = Math.floor(index / 4); const column = index % 4;
-                return <circle key={index} cx={3.8 + column * 5 + (row % 2 ? 2.5 : 0)} cy={3.5 + row * 4.2} r='0.85' fill='#fff' />;
-            })}
-        </g>
-    </svg>
-);
+const DemoAccountIcon = () => <svg className='acc-info__account-icon-svg' viewBox='0 0 48 48' aria-hidden='true'><circle cx='24' cy='24' r='23' fill='#7799a0' /><path d='M16 12v24M16 12h8.2c6.6 0 11.8 5.2 11.8 12s-5.2 12-11.8 12H16M16 24h10.4' fill='none' stroke='#fff' strokeLinecap='round' strokeLinejoin='round' strokeWidth='4.2' /></svg>;
+const RealUsdAccountIcon = () => <span style={{ width: 28, height: 28, borderRadius: '50%', display: 'inline-grid', placeItems: 'center', background: '#173b76', color: '#fff', fontSize: 11, fontWeight: 700 }}>USD</span>;
 
 const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -68,7 +44,6 @@ const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
     if (!activeAccount) return null;
     const { currency, isVirtual, balance } = activeAccount;
     const showChevron = !isSingleAccount && !is_bot_running;
-    // Apply display conversion to BOTH real and demo USD accounts; the account type/icon is unchanged.
     const convertedBalance = currency === 'USD' ? formatAmount(Number(balance ?? 0), 'USD') : `${balance} ${getCurrencyDisplayCode(currency)}`;
 
     return <div className='acc-info__wrapper' ref={wrapperRef}>
