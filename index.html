@@ -2,8 +2,8 @@
 <html lang="en" dir="auto" class="light">
 <head>
 <meta charset="UTF-8" />
-<link rel="icon" type="image/svg+xml" href="/vintelfx-favicon.svg" />
-<link rel="apple-touch-icon" href="/deriv-logo.svg" />
+<link rel="icon" type="image/svg+xml" href="/assets/icons/vintel-tool-round.svg" />
+<link rel="apple-touch-icon" href="/assets/icons/vintel-tool-round.svg" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="title" content="VintelFX" />
 <meta name="description" content="VintelFX is a third-party Deriv trading platform for building, managing and running automated trading bots with your Deriv account." />
@@ -17,18 +17,26 @@
 <meta property="og:description" content="VintelFX is a third-party Deriv trading platform for building, managing and running automated trading bots with your Deriv account." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://vintelfx.site/" />
-<meta property="og:image" content="https://vintelfx.site/deriv-logo.svg" />
+<meta property="og:image" content="https://vintelfx.site/assets/icons/vintel-tool-round.svg" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="VintelFX" />
 <meta name="twitter:description" content="VintelFX is a third-party Deriv trading platform for building, managing and running automated trading bots with your Deriv account." />
-<meta name="twitter:image" content="https://vintelfx.site/deriv-logo.svg" />
+<meta name="twitter:image" content="https://vintelfx.site/assets/icons/vintel-tool-round.svg" />
 <title>VintelFX</title>
-<style>:root { font-size: 62.5%; }</style>
+<style>
+:root { font-size: 62.5%; }
+#vintelfx-site-loader { position: fixed; inset: 0; z-index: 2147483647; display: flex; align-items: center; justify-content: center; background: #050505; overflow: hidden; }
+#vintelfx-site-loader::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(18, 23, 52, .52), rgba(0, 0, 0, .96) 72%); }
+#vintelfx-site-loader img { position: relative; width: min(42vw, 220px); height: min(42vw, 220px); max-width: 220px; max-height: 220px; object-fit: contain; border-radius: 50%; filter: drop-shadow(0 12px 34px rgba(79, 171, 194, .24)); animation: vintelfx-loader-pulse 1.4s ease-in-out infinite; }
+@keyframes vintelfx-loader-pulse { 0%, 100% { transform: scale(.96); opacity: .82; } 50% { transform: scale(1.04); opacity: 1; } }
+</style>
 </head>
 <body class="body theme theme--light">
+<div id="vintelfx-site-loader" aria-label="Loading VintelFX"><img src="/assets/icons/vintel-tool-round.svg" alt="Vintel Tool" /></div>
 <div id="modal_root" class="modal-root"></div>
 <div id="popup_root" class="popup-root"></div>
 <div id="root"></div>
+<script>window.addEventListener('load',()=>{const l=document.getElementById('vintelfx-site-loader');if(l){l.style.transition='opacity .35s ease';l.style.opacity='0';setTimeout(()=>l.remove(),350);}});</script>
 <script type="text/javascript" defer>window.__lc=window.__lc||{};window.__lc.license=12049137;window.__lc.asyncInit=true;(function(n,t,c){function i(n){return e._h?e._h.apply(null,n):e._q.push(n)}var e={_q:[],_h:null,_v:'2.0',on:function(){i(['on',c.call(arguments)])},once:function(){i(['once',c.call(arguments)])},off:function(){i(['off',c.call(arguments)])},get:function(){if(!e._h)throw new Error('LiveChatWidget getters cannot be used before load.');return i(['get',c.call(arguments)])},call:function(){i(['call',c.call(arguments)])},init:function(){setTimeout(()=>{var n=t.createElement('script');n.async=!0;n.type='text/javascript';n.src='https://cdn.livechatinc.com/tracking.js';t.head.appendChild(n)},3000)}};(!n.__lc.asyncInit&&e.init(),n.LiveChatWidget=n.LiveChatWidget||e)})(window,document,[].slice);</script>
 </body>
 </html>
