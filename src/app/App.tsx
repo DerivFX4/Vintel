@@ -53,19 +53,6 @@ const router = createBrowserRouter(
 );
 
 function App() {
-    const [showStartupLoader, setShowStartupLoader] = React.useState(true);
-    const [isStartupFading, setIsStartupFading] = React.useState(false);
-
-    React.useEffect(() => {
-        const startTimer = window.setTimeout(() => setIsStartupFading(true), 8000);
-        const removeTimer = window.setTimeout(() => setShowStartupLoader(false), 8650);
-
-        return () => {
-            window.clearTimeout(startTimer);
-            window.clearTimeout(removeTimer);
-        };
-    }, []);
-
     const { isProcessing, isValid, params, error, cleanupURL } = useOAuthCallback();
 
     useAccountSwitching();
@@ -99,12 +86,7 @@ function App() {
         }
     }, [isProcessing, isValid, params.code, error, cleanupURL]);
 
-    return (
-        <>
-            <RouterProvider router={router} />
-            {showStartupLoader && <ChunkLoader isExiting={isStartupFading} />}
-        </>
-    );
+    return <RouterProvider router={router} />;
 }
 
 export default App;
