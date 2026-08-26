@@ -9,7 +9,6 @@ import { useLogout } from '@/hooks/useLogout';
 import { useStore } from '@/hooks/useStore';
 import { Localize } from '@deriv-com/translations';
 import { Header, useDevice, Wrapper } from '@deriv-com/ui';
-import { AppLogo } from '../app-logo';
 import AccountSwitcher from './account-switcher';
 import MenuItems from './menu-items';
 import MobileMenu from './mobile-menu';
@@ -96,25 +95,15 @@ const AppHeader = observer(() => {
     }, [setIsAuthorizing]);
 
     const renderAccountSection = useCallback(
-        (position: 'left' | 'right' = 'right') => {
+        (position: 'right' = 'right') => {
             if (activeLoginid && !is_account_regenerating) {
-                if (position === 'left') {
-                    return (
-                        <div className='vintelfx-brand-name' aria-label='VintelFX'>
-                            <span className='vintelfx-brand-name__vintel'>Vintel</span>
-                            <span className='vintelfx-brand-name__fx'>FX</span>
+                return (
+                    <div className='auth-actions'>
+                        <div className='account-info'>
+                            <AccountSwitcher activeAccount={activeAccount} />
                         </div>
-                    );
-                }
-                if (position === 'right') {
-                    return (
-                        <div className='auth-actions'>
-                            <div className='account-info'>
-                                <AccountSwitcher activeAccount={activeAccount} />
-                            </div>
-                        </div>
-                    );
-                }
+                    </div>
+                );
             } else if (
                 position === 'right' &&
                 !isOAuthPending &&
@@ -130,7 +119,7 @@ const AppHeader = observer(() => {
                         </Button>
                     </div>
                 );
-            } else if (position === 'right') {
+            } else {
                 return (
                     <div className='auth-actions auth-actions--loading'>
                         <svg className='auth-actions__spinner' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
@@ -139,9 +128,8 @@ const AppHeader = observer(() => {
                     </div>
                 );
             }
-            return null;
         },
-        [isAuthorizing, activeLoginid, client, activeAccount, authTimeout, is_account_regenerating, isOAuthPending, handleLogin, handleSignup]
+        [isAuthorizing, activeLoginid, activeAccount, authTimeout, is_account_regenerating, isOAuthPending, handleLogin, handleSignup]
     );
 
     if (client?.should_hide_header) return null;
@@ -150,8 +138,7 @@ const AppHeader = observer(() => {
         <Header className={clsx('app-header', { 'app-header--desktop': isDesktop, 'app-header--mobile': !isDesktop })}>
             <Wrapper variant='left'>
                 <MobileMenu onLogout={handleLogout} />
-                <AppLogo />
-                {activeLoginid && !is_account_regenerating && !isDesktop ? renderAccountSection('left') : null}
+                <img className='vintelfx-header-logo' src='/assets/icons/vintel-tool-round.svg' alt='Vintel Tool' />
                 {isDesktop ? <MenuItems /> : null}
             </Wrapper>
             <Wrapper variant='right'>{renderAccountSection('right')}</Wrapper>
