@@ -2,33 +2,60 @@
 <html lang="en" dir="auto" class="light">
 <head>
 <meta charset="UTF-8" />
-<link rel="icon" type="image/svg+xml" href="/vintelfx-favicon.svg" />
-<link rel="apple-touch-icon" href="/deriv-logo.svg" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="title" content="VintelFX" />
 <meta name="description" content="VintelFX is a third-party Deriv trading platform for building, managing and running automated trading bots with your Deriv account." />
 <meta name="application-name" content="VintelFX" />
 <meta name="apple-mobile-web-app-title" content="VintelFX" />
 <meta name="mobile-web-app-capable" content="yes" />
-<meta name="theme-color" content="#3b1d69" />
+<meta name="theme-color" content="#142640" />
 <link rel="canonical" href="https://vintelfx.site/" />
 <meta property="og:site_name" content="VintelFX" />
 <meta property="og:title" content="VintelFX" />
 <meta property="og:description" content="VintelFX is a third-party Deriv trading platform for building, managing and running automated trading bots with your Deriv account." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://vintelfx.site/" />
-<meta property="og:image" content="https://vintelfx.site/deriv-logo.svg" />
-<meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="VintelFX" />
-<meta name="twitter:description" content="VintelFX is a third-party Deriv trading platform for building, managing and running automated trading bots with your Deriv account." />
-<meta name="twitter:image" content="https://vintelfx.site/deriv-logo.svg" />
 <title>VintelFX</title>
-<style>:root { font-size: 62.5%; }</style>
+<style>
+:root { font-size: 62.5%; }
+#vintelfx-site-loader { position: fixed; inset: 0; z-index: 2147483647; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #071426; color: #e7edf6; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+#vintelfx-site-loader::before { content: ''; position: absolute; inset: -6%; background: radial-gradient(circle at 68% 32%, rgba(33, 167, 217, .42), transparent 27%), radial-gradient(circle at 18% 78%, rgba(85, 54, 161, .42), transparent 30%), linear-gradient(135deg, #061326 0%, #123f62 42%, #071221 100%); filter: blur(12px); transform: scale(1.08); }
+#vintelfx-site-loader::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(2, 8, 19, .5), transparent 46%, rgba(2, 8, 19, .25)), radial-gradient(circle at 20% 20%, rgba(255,255,255,.06) 1px, transparent 1.5px); background-size: auto, 24px 24px; pointer-events: none; }
+.vintelfx-loader-card { position: relative; z-index: 1; width: min(84vw, 64rem); min-height: 36rem; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3.6rem 3.2rem 7rem; border: 1px solid rgba(255,255,255,.14); border-radius: 1.4rem; background: linear-gradient(135deg, rgba(35,48,69,.91), rgba(20,29,47,.92)); box-shadow: 0 2.4rem 6rem rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05); backdrop-filter: blur(18px); }
+.vintelfx-loader-mark { width: 8rem; height: 8rem; display: grid; place-items: center; margin-bottom: 2.2rem; border: 1px solid rgba(78, 145, 231, .72); border-radius: 2rem; background: linear-gradient(135deg, rgba(21,50,88,.98), rgba(13,31,59,.98)); color: #d8e2ef; font-size: 2.8rem; font-weight: 800; letter-spacing: .04em; box-shadow: 1.6rem 1.6rem 0 -1.5rem rgba(41,105,191,.45), -1.1rem -1.1rem 0 -1.05rem rgba(41,105,191,.24); }
+.vintelfx-loader-title { margin: 0; font-size: clamp(2.2rem, 6vw, 3.4rem); line-height: 1.15; letter-spacing: .12em; font-weight: 800; }
+.vintelfx-loader-subtitle { margin: 1rem 0 2.2rem; font-size: 1.45rem; letter-spacing: .05em; color: #b6c0d0; }
+.vintelfx-loader-dots { display: flex; gap: 1.2rem; margin-bottom: 2.4rem; }
+.vintelfx-loader-dots span { width: 1.4rem; height: 1.4rem; border-radius: 50%; background: #4d8de4; opacity: .42; animation: vintelfx-loader-dot 1.2s ease-in-out infinite; }
+.vintelfx-loader-dots span:nth-child(2) { animation-delay: .16s; }
+.vintelfx-loader-dots span:nth-child(3) { animation-delay: .32s; }
+.vintelfx-loader-status { margin: 0; min-height: 2.2rem; font-size: 1.5rem; letter-spacing: .04em; color: #d3d9e3; }
+.vintelfx-loader-progress-wrap { position: absolute; left: 1.6rem; right: 1.6rem; bottom: 2.4rem; }
+.vintelfx-loader-track { height: .7rem; overflow: hidden; border-radius: 999px; background: rgba(214,224,237,.18); }
+.vintelfx-loader-bar { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #557fb7, #8eb0d5); transition: width .16s linear; }
+.vintelfx-loader-footer { display: flex; justify-content: space-between; margin-top: 1.2rem; font-size: 1.2rem; letter-spacing: .04em; color: #c7d0dc; }
+@keyframes vintelfx-loader-dot { 0%,100% { transform: translateY(0); opacity: .38; } 50% { transform: translateY(-.4rem); opacity: 1; } }
+@media (max-width: 480px) { .vintelfx-loader-card { width: calc(100vw - 4rem); min-height: 34rem; padding: 3rem 2rem 7rem; } .vintelfx-loader-mark { width: 7rem; height: 7rem; font-size: 2.5rem; } }
+</style>
 </head>
 <body class="body theme theme--light">
+<div id="vintelfx-site-loader" aria-live="polite" aria-label="Loading VintelFX">
+  <div class="vintelfx-loader-card">
+    <div class="vintelfx-loader-mark" aria-hidden="true">VT</div>
+    <h1 class="vintelfx-loader-title">VINTELFX</h1>
+    <p class="vintelfx-loader-subtitle">Your Ultimate trusted deriv third party website</p>
+    <div class="vintelfx-loader-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+    <p class="vintelfx-loader-status" id="vintelfx-loader-status">Initializing VintelFX...</p>
+    <div class="vintelfx-loader-progress-wrap">
+      <div class="vintelfx-loader-track"><div class="vintelfx-loader-bar" id="vintelfx-loader-bar"></div></div>
+      <div class="vintelfx-loader-footer"><span id="vintelfx-loader-stage">Boot sequence</span><span id="vintelfx-loader-percent">0%</span></div>
+    </div>
+  </div>
+</div>
 <div id="modal_root" class="modal-root"></div>
 <div id="popup_root" class="popup-root"></div>
 <div id="root"></div>
+<script>(function(){const loader=document.getElementById('vintelfx-site-loader');const bar=document.getElementById('vintelfx-loader-bar');const percent=document.getElementById('vintelfx-loader-percent');const stage=document.getElementById('vintelfx-loader-stage');const status=document.getElementById('vintelfx-loader-status');const started=Date.now();const minDuration=7000;const stages=['Boot sequence','Loading workspace','Preparing dashboard','Starting VintelFX'];let value=0;let finished=false;const tick=()=>{if(finished)return;const elapsed=Date.now()-started;value=Math.min(96,Math.floor((elapsed/minDuration)*96));bar.style.width=value+'%';percent.textContent=value+'%';const index=Math.min(stages.length-1,Math.floor((value/100)*stages.length));stage.textContent=stages[index];status.textContent=value<35?'Initializing VintelFX...':value<70?'Loading your workspace...':'Almost ready...';requestAnimationFrame(tick)};tick();window.addEventListener('load',()=>{const remaining=Math.max(0,minDuration-(Date.now()-started));setTimeout(()=>{finished=true;bar.style.width='100%';percent.textContent='100%';stage.textContent='Ready';status.textContent='Welcome to VintelFX';setTimeout(()=>{loader.style.transition='opacity .45s ease, visibility .45s ease';loader.style.opacity='0';loader.style.visibility='hidden';setTimeout(()=>loader.remove(),500)},350)},remaining)})})();</script>
 <script type="text/javascript" defer>window.__lc=window.__lc||{};window.__lc.license=12049137;window.__lc.asyncInit=true;(function(n,t,c){function i(n){return e._h?e._h.apply(null,n):e._q.push(n)}var e={_q:[],_h:null,_v:'2.0',on:function(){i(['on',c.call(arguments)])},once:function(){i(['once',c.call(arguments)])},off:function(){i(['off',c.call(arguments)])},get:function(){if(!e._h)throw new Error('LiveChatWidget getters cannot be used before load.');return i(['get',c.call(arguments)])},call:function(){i(['call',c.call(arguments)])},init:function(){setTimeout(()=>{var n=t.createElement('script');n.async=!0;n.type='text/javascript';n.src='https://cdn.livechatinc.com/tracking.js';t.head.appendChild(n)},3000)}};(!n.__lc.asyncInit&&e.init(),n.LiveChatWidget=n.LiveChatWidget||e)})(window,document,[].slice);</script>
 </body>
 </html>
